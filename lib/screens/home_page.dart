@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class MonthSelector extends StatelessWidget {
+class MonthSelector extends StatefulWidget {
   final DateTime currentDate;
   final ValueChanged<int> onMonthChanged;
 
@@ -99,7 +99,27 @@ class MonthSelector extends StatelessWidget {
   });
 
   @override
+  State<MonthSelector> createState() => _MonthSelectorState();
+}
+
+class _MonthSelectorState extends State<MonthSelector> {
+  bool _isMovingForward = true;
+
+  @override
+  void didUpdateWidget(MonthSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentDate != oldWidget.currentDate) {
+      setState(() {
+        _isMovingForward = widget.currentDate.isAfter(oldWidget.currentDate);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final currentDate = widget.currentDate;
+    final onMonthChanged = widget.onMonthChanged;
+
     final prevDate = DateTime(currentDate.year, currentDate.month - 1);
     final nextDate = DateTime(currentDate.year, currentDate.month + 1);
     final months = [
@@ -118,95 +138,218 @@ class MonthSelector extends StatelessWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-      child: GestureDetector(
-        onHorizontalDragEnd: (details) {
-          if (details.primaryVelocity! > 0) {
-            onMonthChanged(-1);
-          } else if (details.primaryVelocity! < 0) {
-            onMonthChanged(1);
-          }
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C1E).withOpacity(0.8),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-              width: 0.5,
+      padding: const EdgeInsets.only(bottom: 24.0),
+      child: Center(
+        child: GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity! > 0) {
+              onMonthChanged(-1);
+            } else if (details.primaryVelocity! < 0) {
+              onMonthChanged(1);
+            }
+          },
+          child: Container(
+            width: 210, // Fixed width to prevent stretching
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C1C1E),
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.12),
+                width: 1.0,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Lively Breathing Indicator
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 600),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    curve: Curves.easeOutCubic,
+                    key: ValueKey(currentDate.month),
+                    builder: (context, value, child) {
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Pulsing Glow
+                          Positioned(
+                            bottom: 0,
+                            child: Container(
+                              width: 40 + (10 * value),
+                              height: 12,
+                              decoration: BoxDecoration(
+                                gradient: RadialGradient(
+                                  center: const Alignment(0, 1.0),
+                                  radius: 0.8,
+                                  colors: [
+                                    Colors.white.withOpacity(0.2 * value),
+                                    Colors.white.withOpacity(0.0),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Expanding Laser Bar
+                          Positioned(
+                            bottom: 0,
+                            child: Container(
+                              width: 16 + (8 * value),
+                              height: 1.2,
+                              margin: const EdgeInsets.only(bottom: 0.5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(
+                                  0.3 + (0.7 * value),
+                                ),
+                                borderRadius: BorderRadius.circular(2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(
+                                      0.4 * value,
+                                    ),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  // Navigation Items
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _CompactNavButton(
+                          icon: Icons.chevron_left,
+                          onPressed: () => onMonthChanged(-1),
+                        ),
+                        // Animated Month Labels
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) {
+                              final isEntering =
+                                  child.key == ValueKey(currentDate.month);
+
+                              Offset beginOffset;
+                              if (isEntering) {
+                                // New month entering
+                                beginOffset = _isMovingForward
+                                    ? const Offset(0.3, 0)
+                                    : const Offset(-0.3, 0);
+                              } else {
+                                // Old month exiting
+                                beginOffset = _isMovingForward
+                                    ? const Offset(-0.3, 0)
+                                    : const Offset(0.3, 0);
+                              }
+
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: beginOffset,
+                                    end: Offset.zero,
+                                  ).animate(animation),
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: Row(
+                              key: ValueKey(currentDate.month),
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Prev Month
+                                SizedBox(
+                                  width: 35,
+                                  child: Opacity(
+                                    opacity: 0.2,
+                                    child: Text(
+                                      months[prevDate.month - 1].toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                // Current Month
+                                Container(
+                                  width: 65,
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    months[currentDate.month - 1].toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ),
+                                // Next Month
+                                SizedBox(
+                                  width: 35,
+                                  child: Opacity(
+                                    opacity: 0.2,
+                                    child: Text(
+                                      months[nextDate.month - 1].toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        _CompactNavButton(
+                          icon: Icons.chevron_right,
+                          onPressed: () => onMonthChanged(1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: () => onMonthChanged(-1),
-                icon: const Icon(
-                  Icons.chevron_left,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                padding: EdgeInsets.zero,
-              ),
-              const SizedBox(width: 4),
-              // Previous Month (Dimmed, Small)
-              SizedBox(
-                width: 40,
-                child: Center(
-                  child: Text(
-                    months[prevDate.month - 1],
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.35),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Current Month (Big, Bold, Bright)
-              Text(
-                months[currentDate.month - 1],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Next Month (Dimmed, Small)
-              SizedBox(
-                width: 40,
-                child: Center(
-                  child: Text(
-                    months[nextDate.month - 1],
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.35),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                onPressed: () => onMonthChanged(1),
-                icon: const Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey,
-                  size: 20,
-                ),
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                padding: EdgeInsets.zero,
-              ),
-            ],
-          ),
         ),
+      ),
+    );
+  }
+}
+
+class _CompactNavButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _CompactNavButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white.withOpacity(0.7), size: 16),
       ),
     );
   }
@@ -228,7 +371,7 @@ class CalendarGrid extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: daysOfWeek.map((day) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
+              padding: const EdgeInsets.only(bottom: 15.0),
               child: Row(
                 children: [
                   // Day Label - Rotated
@@ -260,7 +403,7 @@ class CalendarGrid extends StatelessWidget {
                               : Center(
                                   child: Container(
                                     width: 50,
-                                    height: 50,
+                                    height: 60,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF2C2C2E),
                                       borderRadius: BorderRadius.circular(12),
