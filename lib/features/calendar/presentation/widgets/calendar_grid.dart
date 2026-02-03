@@ -98,40 +98,69 @@ class CalendarGrid extends StatelessWidget {
     required TextTheme textTheme,
   }) {
     final isToday = _isToday(date);
+    final isPast = _isPast(date);
 
     return Center(
       child: Container(
-        width: 50,
-        height: 60,
+        width: isToday ? 54 : 50,
+        height: isToday ? 64 : 60,
         decoration: BoxDecoration(
           color: isToday
-              ? colorScheme.onSurface
+              ? colorScheme.surface
+              : isPast
+              ? colorScheme.onSurface.withValues(alpha: 0.03)
               : colorScheme.onSurface.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(12),
-          border: isToday
-              ? null
-              : Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.08),
-                  width: 0.5,
-                ),
+          borderRadius: BorderRadius.circular(isToday ? 14 : 12),
+          border: Border.all(
+            color: isToday
+                ? colorScheme.onSurface
+                : isPast
+                ? colorScheme.outline.withValues(alpha: 0.05)
+                : colorScheme.outline.withValues(alpha: 0.08),
+            width: isToday ? 1.5 : 0.5,
+          ),
           boxShadow: isToday
               ? [
+                  // Outer Glow
                   BoxShadow(
-                    color: colorScheme.onSurface.withValues(alpha: 0.15),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
+                    color: colorScheme.onSurface.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    spreadRadius: 1,
+                  ),
+                  // Professional Shadow for depth
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ]
               : null,
         ),
-        alignment: Alignment.center,
-        child: Text(
-          date.toString().padLeft(2, '0'),
-          style: textTheme.titleLarge?.copyWith(
-            color: isToday ? colorScheme.surface : colorScheme.onSurface,
-            fontVariations: [FontVariation('wght', isToday ? 700 : 500)],
-            fontSize: 20,
-          ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            if (isPast)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _StripedPainter(
+                    color: colorScheme.onSurface.withValues(alpha: 0.06),
+                  ),
+                ),
+              ),
+            Center(
+              child: Text(
+                date.toString().padLeft(2, '0'),
+                style: textTheme.titleLarge?.copyWith(
+                  color: isPast
+                      ? colorScheme.onSurface.withValues(alpha: 0.2)
+                      : colorScheme.onSurface,
+                  fontVariations: [FontVariation('wght', isToday ? 700 : 500)],
+                  fontSize: isToday ? 22 : 20,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -142,6 +171,13 @@ class CalendarGrid extends StatelessWidget {
     return now.year == currentDate.year &&
         now.month == currentDate.month &&
         now.day == date;
+  }
+
+  bool _isPast(int date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final cellDate = DateTime(currentDate.year, currentDate.month, date);
+    return cellDate.isBefore(today);
   }
 
   Map<String, List<int?>> _generateMonthData(DateTime date) {
@@ -197,4 +233,29 @@ class CalendarGrid extends StatelessWidget {
       }
     }
   }
+}
+
+class _StripedPainter extends CustomPainter {
+  final Color color;
+
+  _StripedPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5;
+
+    const gap = 8.0;
+    for (double i = -size.height; i < size.width; i += gap) {
+      canvas.drawLine(
+        Offset(i, 0),
+        Offset(i + size.height, size.height),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
