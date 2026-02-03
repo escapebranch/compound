@@ -34,15 +34,31 @@ class CalendarGrid extends StatelessWidget {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: _daysOfWeek.map((day) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 15.0),
+            return Container(
+              height: 75, // Fixed height for the lane
+              margin: const EdgeInsets.only(bottom: 8.0),
               child: Row(
                 children: [
-                  // Day Label - Rotated
-                  Transform.rotate(
-                    angle: 1.57, // ~90 degrees
-                    child: SizedBox(
-                      width: 30,
+                  // Day Label - Boxed with Horizontal Lines
+                  Container(
+                    width: 30,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      border: Border(
+                        top: BorderSide(
+                          color: colorScheme.outline.withValues(alpha: 0.15),
+                          width: 1,
+                        ),
+                        bottom: BorderSide(
+                          color: colorScheme.outline.withValues(alpha: 0.15),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Transform.rotate(
+                      angle: 1.57, // ~90 degrees
                       child: Text(
                         day,
                         style: textTheme.labelSmall?.copyWith(
