@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Compound App Typography System
@@ -16,7 +17,7 @@ abstract final class AppTypography {
   static const TextStyle displayLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 57,
-    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
     letterSpacing: -0.25,
     height: 1.12,
   );
@@ -26,7 +27,7 @@ abstract final class AppTypography {
   static const TextStyle displayMedium = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 45,
-    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
     letterSpacing: 0,
     height: 1.16,
   );
@@ -36,67 +37,67 @@ abstract final class AppTypography {
   static const TextStyle displaySmall = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 36,
-    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
     letterSpacing: 0,
     height: 1.22,
   );
 
   /// Headline Large - Page titles
-  /// Size: 32, Weight: 600, Tracking: 0
+  /// Size: 32, Weight: 900, Tracking: -1.0
   static const TextStyle headlineLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 32,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0,
+    fontVariations: [FontVariation('wght', 900)],
+    letterSpacing: -1.0,
     height: 1.25,
   );
 
   /// Headline Medium - Section titles
-  /// Size: 28, Weight: 600, Tracking: 0
+  /// Size: 28, Weight: 800, Tracking: -0.5
   static const TextStyle headlineMedium = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 28,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0,
+    fontVariations: [FontVariation('wght', 800)],
+    letterSpacing: -0.5,
     height: 1.29,
   );
 
   /// Headline Small - Subsection titles
-  /// Size: 24, Weight: 600, Tracking: 0
+  /// Size: 24, Weight: 800, Tracking: -0.5
   static const TextStyle headlineSmall = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 24,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0,
+    fontVariations: [FontVariation('wght', 800)],
+    letterSpacing: -0.5,
     height: 1.33,
   );
 
   /// Title Large - List item titles, dialog titles
-  /// Size: 22, Weight: 500, Tracking: 0
+  /// Size: 22, Weight: 800, Tracking: -0.5
   static const TextStyle titleLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 22,
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0,
+    fontVariations: [FontVariation('wght', 800)],
+    letterSpacing: -0.5,
     height: 1.27,
   );
 
   /// Title Medium - Navigation titles, smaller cards
-  /// Size: 16, Weight: 600, Tracking: 0.15
+  /// Size: 18, Weight: 700, Tracking: 0
   static const TextStyle titleMedium = TextStyle(
     fontFamily: _fontFamily,
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 0.15,
+    fontSize: 18,
+    fontVariations: [FontVariation('wght', 700)],
+    letterSpacing: 0,
     height: 1.50,
   );
 
   /// Title Small - Tabs, chips, smaller nav
-  /// Size: 14, Weight: 600, Tracking: 0.1
+  /// Size: 14, Weight: 700, Tracking: 0.1
   static const TextStyle titleSmall = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 700)],
     letterSpacing: 0.1,
     height: 1.43,
   );
@@ -106,7 +107,7 @@ abstract final class AppTypography {
   static const TextStyle bodyLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
-    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
     letterSpacing: 0.5,
     height: 1.50,
   );
@@ -116,7 +117,7 @@ abstract final class AppTypography {
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
     letterSpacing: 0.25,
     height: 1.43,
   );
@@ -126,7 +127,7 @@ abstract final class AppTypography {
   static const TextStyle bodySmall = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 12,
-    fontWeight: FontWeight.w400,
+    fontVariations: [FontVariation('wght', 400)],
     letterSpacing: 0.4,
     height: 1.33,
   );
@@ -136,7 +137,7 @@ abstract final class AppTypography {
   static const TextStyle labelLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 14,
-    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 600)],
     letterSpacing: 0.1,
     height: 1.43,
   );
@@ -146,7 +147,7 @@ abstract final class AppTypography {
   static const TextStyle labelMedium = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 12,
-    fontWeight: FontWeight.w600,
+    fontVariations: [FontVariation('wght', 600)],
     letterSpacing: 0.5,
     height: 1.33,
   );
@@ -156,7 +157,7 @@ abstract final class AppTypography {
   static const TextStyle labelSmall = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 11,
-    fontWeight: FontWeight.w500,
+    fontVariations: [FontVariation('wght', 500)],
     letterSpacing: 0.5,
     height: 1.45,
   );

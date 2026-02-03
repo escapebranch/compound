@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'compact_nav_button.dart';
@@ -72,7 +73,7 @@ class _MonthSelectorState extends State<MonthSelector> {
             }
           },
           child: Container(
-            width: 210,
+            width: 220,
             height: 44,
             decoration: BoxDecoration(
               color: isDark
@@ -251,17 +252,19 @@ class _MonthSelectorState extends State<MonthSelector> {
     required bool isActive,
     required ColorScheme colorScheme,
   }) {
-    return SizedBox(
-      width: isActive ? 65 : 35,
-      child: Opacity(
-        opacity: isActive ? 1.0 : 0.2,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: isActive ? 66 : 32,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: isActive ? 1.0 : 0.4,
         child: Text(
           text.toUpperCase(),
           style: TextStyle(
             color: colorScheme.onSurface,
-            fontSize: isActive ? 13 : 10,
-            fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
-            letterSpacing: isActive ? 1.2 : 0,
+            fontSize: isActive ? 14 : 11,
+            fontVariations: [FontVariation('wght', isActive ? 900 : 700)],
+            letterSpacing: isActive ? 1.5 : 0.5,
           ),
           textAlign: TextAlign.center,
         ),

@@ -1,4 +1,5 @@
 import 'package:compound/core/theme/theme.dart';
+import 'package:compound/core/theme/theme_notifier.dart';
 import 'package:compound/features/calendar/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,16 +28,20 @@ class CompoundApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Compound',
-      debugShowCheckedModeBanner: false,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          title: 'Compound',
+          debugShowCheckedModeBanner: false,
 
-      // Theme Configuration
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.dark, // Default to dark mode
-
-      home: const HomePage(),
+          // Theme Configuration
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: currentMode,
+          home: const HomePage(),
+        );
+      },
     );
   }
 }

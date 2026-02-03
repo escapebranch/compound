@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Calendar Grid Widget
@@ -46,7 +47,7 @@ class CalendarGrid extends StatelessWidget {
                         day,
                         style: textTheme.labelSmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.bold,
+                          fontVariations: [const FontVariation('wght', 700)],
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -100,13 +101,23 @@ class CalendarGrid extends StatelessWidget {
                   color: colorScheme.outline.withValues(alpha: 0.1),
                   width: 1,
                 ),
+          boxShadow: isToday
+              ? [
+                  BoxShadow(
+                    color: colorScheme.onSurface.withValues(alpha: 0.2),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         alignment: Alignment.center,
         child: Text(
           date.toString().padLeft(2, '0'),
-          style: textTheme.titleMedium?.copyWith(
+          style: textTheme.titleLarge?.copyWith(
             color: isToday ? colorScheme.surface : colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
+            fontVariations: [const FontVariation('wght', 900)],
+            fontSize: 20,
           ),
         ),
       ),

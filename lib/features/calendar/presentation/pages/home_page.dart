@@ -1,5 +1,5 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-
 import '../widgets/widgets.dart';
 
 /// Home Page
@@ -29,62 +29,99 @@ class _HomePageState extends State<HomePage> {
     final textTheme = theme.textTheme;
 
     return Scaffold(
-      body: Stack(
+      body: Column(
         children: [
-          // Background vertical divider line
-          Positioned(
-            left: 34,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    colorScheme.onSurface.withValues(alpha: 0.0),
-                    colorScheme.onSurface.withValues(alpha: 0.15),
-                    colorScheme.onSurface.withValues(alpha: 0.15),
-                    colorScheme.onSurface.withValues(alpha: 0.0),
-                  ],
-                  stops: const [0.0, 0.1, 0.9, 1.0],
+          // Top App Bar / Header Area
+          Container(
+            height: 120, // Increased height to accommodate status bar + header
+            padding: const EdgeInsets.only(top: 40, left: 24, right: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Compound',
+                  style: textTheme.headlineMedium?.copyWith(
+                    fontVariations: [const FontVariation('wght', 900)],
+                    letterSpacing: -1.2,
+                    fontSize: 32,
+                  ),
                 ),
+                IconButton(
+                  onPressed: () {},
+                  icon: Icon(
+                    Icons.menu_rounded,
+                    color: colorScheme.onSurface,
+                    size: 28,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Horizontal Divider (separating Header from Calendar area)
+          Container(
+            height: 1,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.onSurface.withValues(alpha: 0.0),
+                  colorScheme.onSurface.withValues(alpha: 0.12),
+                  colorScheme.onSurface.withValues(alpha: 0.12),
+                  colorScheme.onSurface.withValues(alpha: 0.0),
+                ],
+                stops: const [0.0, 0.1, 0.9, 1.0],
               ),
             ),
           ),
-          SafeArea(
-            child: Column(
+
+          // Main Content Area (Vertical Divider + Calendar)
+          Expanded(
+            child: Stack(
               children: [
-                // Top App Bar / Header Area
-                SizedBox(
-                  height: 80,
-                  child: Center(
-                    child: Text(
-                      'Compound',
-                      style: textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                // Background vertical divider line (Starts below horizontal divider)
+                Positioned(
+                  left: 34,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          colorScheme.onSurface.withValues(alpha: 0.12),
+                          colorScheme.onSurface.withValues(alpha: 0.12),
+                          colorScheme.onSurface.withValues(alpha: 0.0),
+                        ],
+                        stops: const [0.0, 0.8, 1.0],
                       ),
                     ),
                   ),
                 ),
 
-                // Expanded Center Area - Calendar Grid
-                Expanded(
-                  flex: 8,
-                  child: Container(
-                    padding: const EdgeInsets.only(left: 0.0, right: 8.0),
-                    child: CalendarGrid(currentDate: _currentDate),
-                  ),
-                ),
+                // Content
+                Column(
+                  children: [
+                    // Expanded Center Area - Calendar Grid
+                    Expanded(
+                      flex: 8,
+                      child: Container(
+                        padding: const EdgeInsets.only(left: 0.0, right: 8.0),
+                        child: CalendarGrid(currentDate: _currentDate),
+                      ),
+                    ),
 
-                // Bottom Area - Month Selector
-                SizedBox(
-                  height: 80,
-                  child: MonthSelector(
-                    currentDate: _currentDate,
-                    onMonthChanged: _changeMonth,
-                  ),
+                    // Bottom Area - Month Selector
+                    SizedBox(
+                      height: 80,
+                      child: MonthSelector(
+                        currentDate: _currentDate,
+                        onMonthChanged: _changeMonth,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
