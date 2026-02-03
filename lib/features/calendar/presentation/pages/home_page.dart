@@ -121,53 +121,66 @@ class _HomePageState extends State<HomePage> {
 
           // Main Content Area
           Expanded(
-            child: Stack(
-              children: [
-                // Subtle vertical divider line
-                Positioned(
-                  left: 34,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 0.5,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          colorScheme.onSurface.withValues(alpha: 0.08),
-                          colorScheme.onSurface.withValues(alpha: 0.08),
-                          colorScheme.onSurface.withValues(alpha: 0.0),
-                        ],
-                        stops: const [0.0, 0.8, 1.0],
+            child: GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity == null) return;
+                if (details.primaryVelocity! > 0) {
+                  // Swipe right -> previous month
+                  _changeMonth(-1);
+                } else if (details.primaryVelocity! < 0) {
+                  // Swipe left -> next month
+                  _changeMonth(1);
+                }
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Stack(
+                children: [
+                  // Subtle vertical divider line
+                  Positioned(
+                    left: 34,
+                    top: 0,
+                    bottom: 0,
+                    child: Container(
+                      width: 0.5,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            colorScheme.onSurface.withValues(alpha: 0.08),
+                            colorScheme.onSurface.withValues(alpha: 0.08),
+                            colorScheme.onSurface.withValues(alpha: 0.0),
+                          ],
+                          stops: const [0.0, 0.8, 1.0],
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // Content
-                Column(
-                  children: [
-                    // Calendar Grid
-                    Expanded(
-                      flex: 8,
-                      child: Container(
-                        padding: const EdgeInsets.only(left: 0.0, right: 8.0),
-                        child: CalendarGrid(currentDate: _currentDate),
+                  // Content
+                  Column(
+                    children: [
+                      // Calendar Grid
+                      Expanded(
+                        flex: 8,
+                        child: Container(
+                          padding: const EdgeInsets.only(left: 0.0, right: 8.0),
+                          child: CalendarGrid(currentDate: _currentDate),
+                        ),
                       ),
-                    ),
 
-                    // Month Selector (Keep for quick navigation)
-                    SizedBox(
-                      height: 80,
-                      child: MonthSelector(
-                        currentDate: _currentDate,
-                        onMonthChanged: _changeMonth,
+                      // Month Selector (Keep for quick navigation)
+                      SizedBox(
+                        height: 80,
+                        child: MonthSelector(
+                          currentDate: _currentDate,
+                          onMonthChanged: _changeMonth,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
