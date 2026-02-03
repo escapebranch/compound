@@ -20,43 +20,69 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top App Bar / Header Area
-            const SizedBox(
-              height: 80,
-              child: Center(
-                child: Text(
-                  'Compound',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+      body: Stack(
+        children: [
+          // Background vertical divider line
+          Positioned(
+            left: 34,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withOpacity(0.0),
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.0),
+                  ],
+                  stops: const [0.0, 0.1, 0.9, 1.0],
                 ),
               ),
             ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // Top App Bar / Header Area
+                const SizedBox(
+                  height: 80,
+                  child: Center(
+                    child: Text(
+                      'Compound',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
 
-            // Expanded Center Area - Calendar Grid
-            Expanded(
-              flex: 8,
-              child: Container(
-                padding: const EdgeInsets.only(left: 0.0, right: 8.0),
-                child: CalendarGrid(currentDate: _currentDate),
-              ),
-            ),
+                // Expanded Center Area - Calendar Grid
+                Expanded(
+                  flex: 8,
+                  child: Container(
+                    padding: const EdgeInsets.only(left: 0.0, right: 8.0),
+                    child: CalendarGrid(currentDate: _currentDate),
+                  ),
+                ),
 
-            // Bottom Area - Month Selector
-            SizedBox(
-              height: 80,
-              child: MonthSelector(
-                currentDate: _currentDate,
-                onMonthChanged: _changeMonth,
-              ),
+                // Bottom Area - Month Selector
+                SizedBox(
+                  height: 80,
+                  child: MonthSelector(
+                    currentDate: _currentDate,
+                    onMonthChanged: _changeMonth,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -221,6 +247,9 @@ class CalendarGrid extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Spacer for the vertical line (width 4 + line width 1 + padding 4?)
+                  // User said "within a width of size box 4 draw this line"
+                  const SizedBox(width: 8),
                   // Dates for this day
                   Expanded(
                     child: Row(
