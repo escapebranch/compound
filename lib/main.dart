@@ -1,5 +1,5 @@
 import 'package:compound/core/theme/theme.dart';
-import 'package:compound/screens/home_page.dart';
+import 'package:compound/features/calendar/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
