@@ -30,30 +30,74 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Top App Bar / Header Area
           Container(
-            height: 120,
-            padding: const EdgeInsets.only(top: 40, left: 24, right: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.only(
+              top: 48,
+              left: 12,
+              right: 12,
+              bottom: 0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Compound',
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontVariations: [const FontVariation('wght', 700)],
-                    letterSpacing: -0.8,
-                    fontSize: 30,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Compound',
+                      style: textTheme.headlineMedium?.copyWith(
+                        fontVariations: [const FontVariation('wght', 700)],
+                        letterSpacing: -0.5,
+                        fontSize: 24,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.menu_rounded,
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                        size: 24,
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: Icon(
-                    Icons.menu_rounded,
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                    size: 26,
-                  ),
+                const SizedBox(height: 6),
+                // Month (Text) + Year (Picker) Row + Year Progress
+                Row(
+                  children: [
+                    Text(
+                      _getMonthName(_currentDate.month),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontVariations: [const FontVariation('wght', 500)],
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        letterSpacing: 0.2,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    YearPickerButton(
+                      currentYear: _currentDate.year,
+                      onYearSelected: (newYear) {
+                        setState(() {
+                          _currentDate = DateTime(
+                            newYear,
+                            _currentDate.month,
+                            _currentDate.day,
+                          );
+                        });
+                      },
+                    ),
+                    const Spacer(),
+                    // Year Progress Indicator
+                    _buildYearProgress(colorScheme, textTheme),
+                  ],
                 ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -113,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    // Month Selector
+                    // Month Selector (Keep for quick navigation)
                     SizedBox(
                       height: 80,
                       child: MonthSelector(
@@ -128,6 +172,87 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month - 1];
+  }
+
+  Widget _buildYearProgress(ColorScheme colorScheme, TextTheme textTheme) {
+    final now = DateTime.now();
+    final startOfYear = DateTime(now.year, 1, 1);
+    final endOfYear = DateTime(now.year, 12, 31);
+    final totalDays = endOfYear.difference(startOfYear).inDays + 1;
+    final dayOfYear = now.difference(startOfYear).inDays + 1;
+    final progress = dayOfYear / totalDays;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Day/Total Text
+        Text(
+          '$dayOfYear',
+          style: textTheme.bodyMedium?.copyWith(
+            fontVariations: [const FontVariation('wght', 600)],
+            color: colorScheme.onSurface,
+            fontSize: 14,
+          ),
+        ),
+        Text(
+          '/$totalDays',
+          style: textTheme.bodyMedium?.copyWith(
+            fontVariations: [const FontVariation('wght', 400)],
+            color: colorScheme.onSurface.withValues(alpha: 0.4),
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(width: 10),
+        // Circular Progress
+        SizedBox(
+          width: 28,
+          height: 28,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Background Circle
+              CircularProgressIndicator(
+                value: 1.0,
+                strokeWidth: 3,
+                strokeCap: StrokeCap.round,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation(
+                  colorScheme.onSurface.withValues(alpha: 0.08),
+                ),
+              ),
+              // Progress Circle
+              CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 3,
+                strokeCap: StrokeCap.round,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation(
+                  colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

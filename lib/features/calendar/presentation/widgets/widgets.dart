@@ -6,3 +6,4 @@ library;
 export 'compact_nav_button.dart';
 export 'month_selector.dart';
 export 'calendar_grid.dart';
+export 'year_month_picker.dart';
