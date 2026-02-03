@@ -91,62 +91,95 @@ class MonthSelector extends StatelessWidget {
       'Dec',
     ];
 
-    return GestureDetector(
-      // Allow sliding/swiping
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity! > 0) {
-          // Swipe Right -> Go to Prev Month
-          onMonthChanged(-1);
-        } else if (details.primaryVelocity! < 0) {
-          // Swipe Left -> Go to Next Month
-          onMonthChanged(1);
-        }
-      },
-      child: Container(
-        color: Colors.transparent, // Ensure gesture detection covers the area
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: () => onMonthChanged(-1),
-              icon: const Icon(Icons.chevron_left, color: Colors.grey),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      child: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity! > 0) {
+            onMonthChanged(-1);
+          } else if (details.primaryVelocity! < 0) {
+            onMonthChanged(1);
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C1C1E).withOpacity(0.8),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              width: 0.5,
             ),
-            const SizedBox(width: 8),
-            // Previous Month (Dimmed, Small)
-            Text(
-              months[prevDate.month - 1],
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: () => onMonthChanged(-1),
+                icon: const Icon(
+                  Icons.chevron_left,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                padding: EdgeInsets.zero,
               ),
-            ),
-            const SizedBox(width: 20),
-            // Current Month (Big, Bold, Bright)
-            Text(
-              months[currentDate.month - 1],
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              const SizedBox(width: 4),
+              // Previous Month (Dimmed, Small)
+              SizedBox(
+                width: 40,
+                child: Center(
+                  child: Text(
+                    months[prevDate.month - 1],
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.35),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 20),
-            // Next Month (Dimmed, Small)
-            Text(
-              months[nextDate.month - 1],
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
+              const SizedBox(width: 12),
+              // Current Month (Big, Bold, Bright)
+              Text(
+                months[currentDate.month - 1],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              onPressed: () => onMonthChanged(1),
-              icon: const Icon(Icons.chevron_right, color: Colors.grey),
-            ),
-          ],
+              const SizedBox(width: 12),
+              // Next Month (Dimmed, Small)
+              SizedBox(
+                width: 40,
+                child: Center(
+                  child: Text(
+                    months[nextDate.month - 1],
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.35),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: () => onMonthChanged(1),
+                icon: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
         ),
       ),
     );
