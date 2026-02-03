@@ -165,16 +165,30 @@ class _HomePageState extends State<HomePage> {
                         flex: 8,
                         child: Container(
                           padding: const EdgeInsets.only(left: 0.0, right: 8.0),
-                          child: CalendarGrid(currentDate: _currentDate),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: CalendarGrid(
+                              key: ValueKey(_currentDate),
+                              currentDate: _currentDate,
+                            ),
+                          ),
                         ),
                       ),
 
-                      // Month Selector (Keep for quick navigation)
+                      // Month Selector with Return to Current Month Button
                       SizedBox(
+                        width: double.infinity,
                         height: 80,
-                        child: MonthSelector(
-                          currentDate: _currentDate,
-                          onMonthChanged: _changeMonth,
+                        child: Stack(
+                          alignment: Alignment.topCenter,
+                          children: [
+                            MonthSelector(
+                              currentDate: _currentDate,
+                              onMonthChanged: _changeMonth,
+                            ),
+                            // Return to Current Month Button
+                            _buildReturnToNowButton(context, colorScheme),
+                          ],
                         ),
                       ),
                     ],
@@ -266,6 +280,80 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildReturnToNowButton(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    final now = DateTime.now();
+    final currentMonthStart = DateTime(now.year, now.month);
+    final selectedMonthStart = DateTime(_currentDate.year, _currentDate.month);
+
+    // Don't show if already on current month
+    if (selectedMonthStart == currentMonthStart) return const SizedBox.shrink();
+
+    // Determine direction
+    // If selected is in past (e.g. Jan), and we want to go back to Current (e.g. Mar).
+    // Current is AHEAD (Right).
+    final isPast = selectedMonthStart.isBefore(currentMonthStart);
+    final icon = isPast
+        ? Icons.keyboard_double_arrow_right
+        : Icons.keyboard_double_arrow_left;
+
+    return Positioned(
+      right: 8, // Fits to the right-most, close to edge
+      top: 6, // Aligns with the 44px height pill
+      child: TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutQuart,
+        tween: Tween(begin: 0.0, end: 1.0),
+        builder: (context, value, child) {
+          // Slide in from the right (positive X offset)
+          // Start at 60px right, end at 0
+          final slideOffset = 60.0 * (1.0 - value);
+
+          return Opacity(
+            opacity: value,
+            child: Transform.translate(
+              offset: Offset(slideOffset, 0),
+              child: child,
+            ),
+          );
+        },
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              _currentDate = now;
+            });
+          },
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.1),
+                width: 0.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: colorScheme.onSurface.withValues(alpha: 0.8),
+              size: 22,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
