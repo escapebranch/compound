@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+import 'package:compound/main.dart' show installYear;
+
 class YearPickerButton extends StatefulWidget {
   final int currentYear;
   final ValueChanged<int> onYearSelected;
@@ -62,9 +64,10 @@ class _YearPickerButtonState extends State<YearPickerButton> {
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Year range
+    // Year range: from install year to current year (no future)
     final currentYear = DateTime.now().year;
-    final years = List.generate(15, (index) => (currentYear - 5) + index);
+    final yearCount = currentYear - installYear + 1;
+    final years = List.generate(yearCount, (index) => currentYear - index);
 
     showDialog(
       context: context,

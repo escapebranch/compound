@@ -1,11 +1,22 @@
+import 'package:compound/core/data/app_database.dart';
 import 'package:compound/core/theme/theme.dart';
 import 'package:compound/core/theme/theme_notifier.dart';
 import 'package:compound/features/calendar/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Global database instance
+late final AppDatabase database;
+
+/// Install year (cached for quick access)
+late final int installYear;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize database and get install year
+  database = AppDatabase();
+  installYear = await database.getInstallYear();
 
   // Set system UI overlay style for immersive experience
   SystemChrome.setSystemUIOverlayStyle(

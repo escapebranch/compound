@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Compound',
+                      'Compound.',
                       style: textTheme.headlineMedium?.copyWith(
                         fontVariations: [const FontVariation('wght', 700)],
                         letterSpacing: -0.5,
@@ -221,18 +221,18 @@ class _HomePageState extends State<HomePage> {
             fontSize: 12,
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 6),
         // Circular Progress
         SizedBox(
-          width: 28,
-          height: 28,
+          width: 16,
+          height: 16,
           child: Stack(
             alignment: Alignment.center,
             children: [
               // Background Circle
               CircularProgressIndicator(
                 value: 1.0,
-                strokeWidth: 3,
+                strokeWidth: 2,
                 strokeCap: StrokeCap.round,
                 backgroundColor: Colors.transparent,
                 valueColor: AlwaysStoppedAnimation(
@@ -242,7 +242,7 @@ class _HomePageState extends State<HomePage> {
               // Progress Circle
               CircularProgressIndicator(
                 value: progress,
-                strokeWidth: 3,
+                strokeWidth: 2,
                 strokeCap: StrokeCap.round,
                 backgroundColor: Colors.transparent,
                 valueColor: AlwaysStoppedAnimation(
