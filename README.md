@@ -1,6 +1,6 @@
 # compound
 
-A new Flutter project.
+This project is a Flutter application designed for habit management, todo list organization, and personal self-growth. It provides tools to help users track habits, manage tasks, and foster personal development.
 
 ## Getting Started
 
