@@ -5,7 +5,7 @@ import '../widgets/widgets.dart';
 /// Home Page
 ///
 /// The main calendar view page displaying a transposed calendar grid
-/// with month navigation controls.
+/// with month navigation controls. Refined for AMOLED-first design.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           // Top App Bar / Header Area
           Container(
-            height: 120, // Increased height to accommodate status bar + header
+            height: 120,
             padding: const EdgeInsets.only(top: 40, left: 24, right: 24),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -41,58 +41,58 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   'Compound',
                   style: textTheme.headlineMedium?.copyWith(
-                    fontVariations: [const FontVariation('wght', 900)],
-                    letterSpacing: -1.2,
-                    fontSize: 32,
+                    fontVariations: [const FontVariation('wght', 700)],
+                    letterSpacing: -0.8,
+                    fontSize: 30,
                   ),
                 ),
                 IconButton(
                   onPressed: () {},
                   icon: Icon(
                     Icons.menu_rounded,
-                    color: colorScheme.onSurface,
-                    size: 28,
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    size: 26,
                   ),
                 ),
               ],
             ),
           ),
 
-          // Horizontal Divider (separating Header from Calendar area)
+          // Subtle Horizontal Divider
           Container(
-            height: 1,
+            height: 0.5,
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   colorScheme.onSurface.withValues(alpha: 0.0),
-                  colorScheme.onSurface.withValues(alpha: 0.12),
-                  colorScheme.onSurface.withValues(alpha: 0.12),
+                  colorScheme.onSurface.withValues(alpha: 0.08),
+                  colorScheme.onSurface.withValues(alpha: 0.08),
                   colorScheme.onSurface.withValues(alpha: 0.0),
                 ],
-                stops: const [0.0, 0.1, 0.9, 1.0],
+                stops: const [0.0, 0.15, 0.85, 1.0],
               ),
             ),
           ),
 
-          // Main Content Area (Vertical Divider + Calendar)
+          // Main Content Area
           Expanded(
             child: Stack(
               children: [
-                // Background vertical divider line (Starts below horizontal divider)
+                // Subtle vertical divider line
                 Positioned(
                   left: 34,
                   top: 0,
                   bottom: 0,
                   child: Container(
-                    width: 1,
+                    width: 0.5,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          colorScheme.onSurface.withValues(alpha: 0.12),
-                          colorScheme.onSurface.withValues(alpha: 0.12),
+                          colorScheme.onSurface.withValues(alpha: 0.08),
+                          colorScheme.onSurface.withValues(alpha: 0.08),
                           colorScheme.onSurface.withValues(alpha: 0.0),
                         ],
                         stops: const [0.0, 0.8, 1.0],
@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
                 // Content
                 Column(
                   children: [
-                    // Expanded Center Area - Calendar Grid
+                    // Calendar Grid
                     Expanded(
                       flex: 8,
                       child: Container(
@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    // Bottom Area - Month Selector
+                    // Month Selector
                     SizedBox(
                       height: 80,
                       child: MonthSelector(

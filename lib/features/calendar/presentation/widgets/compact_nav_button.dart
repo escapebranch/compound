@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Compact circular navigation button for the month selector.
 ///
-/// A small, subtle button with an icon that provides
+/// A minimal, subtle button with an icon that provides
 /// navigation controls for switching months.
 class CompactNavButton extends StatelessWidget {
   final IconData icon;
@@ -29,7 +29,7 @@ class CompactNavButton extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          color: colorScheme.onSurface.withValues(alpha: 0.7),
+          color: colorScheme.onSurface.withValues(alpha: 0.5),
           size: 16,
         ),
       ),

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 /// Calendar Grid Widget
 ///
 /// A transposed calendar grid that displays days of the week
-/// vertically and weeks horizontally. Each day cell is a
-/// rounded container showing the date.
+/// vertically and weeks horizontally. Refined for AMOLED-first
+/// monochromatic design with proper typography hierarchy.
 class CalendarGrid extends StatelessWidget {
   final DateTime currentDate;
 
@@ -35,35 +35,32 @@ class CalendarGrid extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: _daysOfWeek.map((day) {
             return Container(
-              height: 75, // Fixed height for the lane
+              height: 75,
               margin: const EdgeInsets.only(bottom: 8.0),
               child: Row(
                 children: [
-                  // Day Label - Boxed with Horizontal Lines
+                  // Day Label - Matching date cell styling
                   Container(
                     width: 30,
                     height: double.infinity,
                     decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      border: Border(
-                        top: BorderSide(
-                          color: colorScheme.outline.withValues(alpha: 0.15),
-                          width: 1,
-                        ),
-                        bottom: BorderSide(
-                          color: colorScheme.outline.withValues(alpha: 0.15),
-                          width: 1,
-                        ),
+                      color: colorScheme.onSurface.withValues(alpha: 0.05),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.06),
+                        width: 0.5,
                       ),
                     ),
                     alignment: Alignment.center,
                     child: Transform.rotate(
-                      angle: 1.57, // ~90 degrees
+                      angle: 1.57,
                       child: Text(
                         day,
                         style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontVariations: [const FontVariation('wght', 700)],
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.6,
+                          ),
+                          fontVariations: [const FontVariation('wght', 500)],
+                          letterSpacing: 1.0,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -109,19 +106,19 @@ class CalendarGrid extends StatelessWidget {
         decoration: BoxDecoration(
           color: isToday
               ? colorScheme.onSurface
-              : colorScheme.surfaceContainerHighest,
+              : colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
           border: isToday
               ? null
               : Border.all(
-                  color: colorScheme.outline.withValues(alpha: 0.1),
-                  width: 1,
+                  color: colorScheme.outline.withValues(alpha: 0.08),
+                  width: 0.5,
                 ),
           boxShadow: isToday
               ? [
                   BoxShadow(
-                    color: colorScheme.onSurface.withValues(alpha: 0.2),
-                    blurRadius: 12,
+                    color: colorScheme.onSurface.withValues(alpha: 0.15),
+                    blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),
                 ]
@@ -132,7 +129,7 @@ class CalendarGrid extends StatelessWidget {
           date.toString().padLeft(2, '0'),
           style: textTheme.titleLarge?.copyWith(
             color: isToday ? colorScheme.surface : colorScheme.onSurface,
-            fontVariations: [const FontVariation('wght', 900)],
+            fontVariations: [FontVariation('wght', isToday ? 700 : 500)],
             fontSize: 20,
           ),
         ),

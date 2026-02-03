@@ -6,7 +6,7 @@ import 'compact_nav_button.dart';
 /// Month Selector Widget
 ///
 /// A compact, pill-shaped month navigation component with
-/// animated transitions and a subtle glow effect indicator.
+/// refined AMOLED-first styling and proper typography hierarchy.
 class MonthSelector extends StatefulWidget {
   final DateTime currentDate;
   final ValueChanged<int> onMonthChanged;
@@ -53,7 +53,6 @@ class _MonthSelectorState extends State<MonthSelector> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
 
     final currentDate = widget.currentDate;
     final onMonthChanged = widget.onMonthChanged;
@@ -76,13 +75,11 @@ class _MonthSelectorState extends State<MonthSelector> {
             width: 220,
             height: 44,
             decoration: BoxDecoration(
-              color: isDark
-                  ? colorScheme.surfaceContainerHighest
-                  : colorScheme.surfaceContainerHighest,
+              color: colorScheme.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(100),
               border: Border.all(
-                color: colorScheme.outline.withValues(alpha: 0.12),
-                width: 1.0,
+                color: colorScheme.outline.withValues(alpha: 0.1),
+                width: 0.5,
               ),
             ),
             child: ClipRRect(
@@ -90,7 +87,7 @@ class _MonthSelectorState extends State<MonthSelector> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Lively Breathing Indicator
+                  // Subtle Glow Indicator
                   _buildGlowIndicator(colorScheme),
                   // Navigation Items
                   _buildNavigationRow(
@@ -119,43 +116,43 @@ class _MonthSelectorState extends State<MonthSelector> {
         return Stack(
           alignment: Alignment.center,
           children: [
-            // Pulsing Glow
+            // Subtle Glow
             Positioned(
               bottom: 0,
               child: Container(
-                width: 40 + (10 * value),
-                height: 12,
+                width: 30 + (8 * value),
+                height: 10,
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     center: const Alignment(0, 1.0),
                     radius: 0.8,
                     colors: [
-                      colorScheme.onSurface.withValues(alpha: 0.2 * value),
+                      colorScheme.onSurface.withValues(alpha: 0.12 * value),
                       colorScheme.onSurface.withValues(alpha: 0.0),
                     ],
                   ),
                 ),
               ),
             ),
-            // Expanding Laser Bar
+            // Minimal Indicator Bar
             Positioned(
               bottom: 0,
               child: Container(
-                width: 16 + (8 * value),
-                height: 1.2,
+                width: 12 + (6 * value),
+                height: 1,
                 margin: const EdgeInsets.only(bottom: 0.5),
                 decoration: BoxDecoration(
                   color: colorScheme.onSurface.withValues(
-                    alpha: 0.3 + (0.7 * value),
+                    alpha: 0.2 + (0.5 * value),
                   ),
                   borderRadius: BorderRadius.circular(2),
                   boxShadow: [
                     BoxShadow(
                       color: colorScheme.onSurface.withValues(
-                        alpha: 0.4 * value,
+                        alpha: 0.2 * value,
                       ),
-                      blurRadius: 4,
-                      spreadRadius: 1,
+                      blurRadius: 3,
+                      spreadRadius: 0.5,
                     ),
                   ],
                 ),
@@ -257,14 +254,14 @@ class _MonthSelectorState extends State<MonthSelector> {
       width: isActive ? 66 : 32,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 300),
-        opacity: isActive ? 1.0 : 0.4,
+        opacity: isActive ? 1.0 : 0.35,
         child: Text(
           text.toUpperCase(),
           style: TextStyle(
             color: colorScheme.onSurface,
-            fontSize: isActive ? 14 : 11,
-            fontVariations: [FontVariation('wght', isActive ? 900 : 700)],
-            letterSpacing: isActive ? 1.5 : 0.5,
+            fontSize: isActive ? 13 : 10,
+            fontVariations: [FontVariation('wght', isActive ? 600 : 500)],
+            letterSpacing: isActive ? 1.2 : 0.8,
           ),
           textAlign: TextAlign.center,
         ),
