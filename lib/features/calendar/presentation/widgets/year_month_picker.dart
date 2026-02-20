@@ -26,9 +26,12 @@ class _YearPickerButtonState extends State<YearPickerButton> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
+    final currentYear = DateTime.now().year;
+    final hasMultipleYears = currentYear > installYear;
+
     return GestureDetector(
       key: _buttonKey,
-      onTap: () => _showPopover(context),
+      onTap: hasMultipleYears ? () => _showPopover(context) : null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -41,12 +44,14 @@ class _YearPickerButtonState extends State<YearPickerButton> {
               fontSize: 18,
             ),
           ),
-          const SizedBox(width: 4),
-          Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: 18,
-            color: colorScheme.onSurface.withValues(alpha: 0.5),
-          ),
+          if (hasMultipleYears) ...[
+            const SizedBox(width: 4),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ],
         ],
       ),
     );
