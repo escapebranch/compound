@@ -99,6 +99,7 @@ class CalendarGrid extends StatelessWidget {
   }) {
     final isToday = _isToday(date);
     final isPast = _isPast(date);
+    final isFuture = !isToday && !isPast;
 
     return Center(
       child: Container(
@@ -107,14 +108,14 @@ class CalendarGrid extends StatelessWidget {
         decoration: BoxDecoration(
           color: isToday
               ? colorScheme.surface
-              : isPast
+              : isFuture
               ? colorScheme.onSurface.withValues(alpha: 0.03)
               : colorScheme.onSurface.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(isToday ? 14 : 12),
           border: Border.all(
             color: isToday
                 ? colorScheme.onSurface
-                : isPast
+                : isFuture
                 ? colorScheme.outline.withValues(alpha: 0.05)
                 : colorScheme.outline.withValues(alpha: 0.08),
             width: isToday ? 1.5 : 0.5,
@@ -139,7 +140,7 @@ class CalendarGrid extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            if (isPast)
+            if (isFuture)
               Positioned.fill(
                 child: CustomPaint(
                   painter: _StripedPainter(
@@ -151,9 +152,11 @@ class CalendarGrid extends StatelessWidget {
               child: Text(
                 date.toString().padLeft(2, '0'),
                 style: textTheme.titleLarge?.copyWith(
-                  color: isPast
+                  color: isToday
+                      ? colorScheme.onSurface
+                      : isFuture
                       ? colorScheme.onSurface.withValues(alpha: 0.2)
-                      : colorScheme.onSurface,
+                      : colorScheme.onSurface.withValues(alpha: 0.4),
                   fontVariations: [FontVariation('wght', isToday ? 700 : 500)],
                   fontSize: isToday ? 22 : 20,
                   letterSpacing: -0.5,
