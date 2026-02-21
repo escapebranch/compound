@@ -1,5 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:compound/main.dart' show installYear, installMonth;
 
 import 'compact_nav_button.dart';
 
@@ -60,12 +60,16 @@ class _MonthSelectorState extends State<MonthSelector> {
     final prevDate = DateTime(currentDate.year, currentDate.month - 1);
     final nextDate = DateTime(currentDate.year, currentDate.month + 1);
 
+    final bool hasPrevMonth =
+        !(prevDate.year < installYear ||
+            (prevDate.year == installYear && prevDate.month < installMonth));
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Center(
         child: GestureDetector(
           onHorizontalDragEnd: (details) {
-            if (details.primaryVelocity! > 0) {
+            if (details.primaryVelocity! > 0 && hasPrevMonth) {
               onMonthChanged(-1);
             } else if (details.primaryVelocity! < 0) {
               onMonthChanged(1);
@@ -95,6 +99,7 @@ class _MonthSelectorState extends State<MonthSelector> {
                     currentDate: currentDate,
                     prevDate: prevDate,
                     nextDate: nextDate,
+                    hasPrevMonth: hasPrevMonth,
                     onMonthChanged: onMonthChanged,
                   ),
                 ],
@@ -169,6 +174,7 @@ class _MonthSelectorState extends State<MonthSelector> {
     required DateTime currentDate,
     required DateTime prevDate,
     required DateTime nextDate,
+    required bool hasPrevMonth,
     required ValueChanged<int> onMonthChanged,
   }) {
     return Padding(
@@ -176,9 +182,15 @@ class _MonthSelectorState extends State<MonthSelector> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CompactNavButton(
-            icon: Icons.chevron_left,
-            onPressed: () => onMonthChanged(-1),
+          IgnorePointer(
+            ignoring: !hasPrevMonth,
+            child: Opacity(
+              opacity: hasPrevMonth ? 1.0 : 0.0,
+              child: CompactNavButton(
+                icon: Icons.chevron_left,
+                onPressed: () => onMonthChanged(-1),
+              ),
+            ),
           ),
           // Animated Month Labels
           Expanded(
@@ -214,10 +226,13 @@ class _MonthSelectorState extends State<MonthSelector> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Prev Month
-                  _buildMonthLabel(
-                    text: _months[prevDate.month - 1],
-                    isActive: false,
-                    colorScheme: colorScheme,
+                  Opacity(
+                    opacity: hasPrevMonth ? 1.0 : 0.0,
+                    child: _buildMonthLabel(
+                      text: _months[prevDate.month - 1],
+                      isActive: false,
+                      colorScheme: colorScheme,
+                    ),
                   ),
                   // Current Month
                   _buildMonthLabel(

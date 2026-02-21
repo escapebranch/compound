@@ -40,6 +40,12 @@ class AppDatabase extends _$AppDatabase {
     final installDate = await getOrSetInstallDate();
     return installDate.year;
   }
+
+  /// Get just the install month
+  Future<int> getInstallMonth() async {
+    final installDate = await getOrSetInstallDate();
+    return installDate.month;
+  }
 }
 
 LazyDatabase _openConnection() {

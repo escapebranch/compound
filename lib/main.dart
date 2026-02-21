@@ -8,15 +8,17 @@ import 'package:flutter/services.dart';
 /// Global database instance
 late final AppDatabase database;
 
-/// Install year (cached for quick access)
+/// Install year and month (cached for quick access)
 late final int installYear;
+late final int installMonth;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize database and get install year
+  // Initialize database and get install year/month
   database = AppDatabase();
   installYear = await database.getInstallYear();
+  installMonth = await database.getInstallMonth();
 
   // Set system UI overlay style for immersive experience
   SystemChrome.setSystemUIOverlayStyle(

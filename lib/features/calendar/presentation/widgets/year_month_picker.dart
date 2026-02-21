@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'package:compound/main.dart' show installYear;
@@ -118,9 +117,20 @@ class _YearPickerButtonState extends State<YearPickerButton> {
                                 diameterRatio: 1.5,
                                 physics: const FixedExtentScrollPhysics(),
                                 controller: FixedExtentScrollController(
-                                  initialItem: years.indexOf(selectedYear) != -1
-                                      ? years.indexOf(selectedYear)
-                                      : years.indexOf(currentYear),
+                                  initialItem: () {
+                                    final selectedIndex = years.indexOf(
+                                      selectedYear,
+                                    );
+                                    if (selectedIndex != -1) {
+                                      return selectedIndex;
+                                    }
+                                    final currentYearIndex = years.indexOf(
+                                      currentYear,
+                                    );
+                                    return currentYearIndex != -1
+                                        ? currentYearIndex
+                                        : 0;
+                                  }(),
                                 ),
                                 onSelectedItemChanged: (index) {
                                   setDialogState(() {

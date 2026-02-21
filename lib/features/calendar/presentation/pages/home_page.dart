@@ -1,5 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:compound/main.dart' show installYear, installMonth;
 import '../widgets/widgets.dart';
 
 /// Home Page
@@ -18,7 +18,12 @@ class _HomePageState extends State<HomePage> {
 
   void _changeMonth(int offset) {
     setState(() {
-      _currentDate = DateTime(_currentDate.year, _currentDate.month + offset);
+      final newDate = DateTime(_currentDate.year, _currentDate.month + offset);
+      if (newDate.year < installYear ||
+          (newDate.year == installYear && newDate.month < installMonth)) {
+        return; // Do not go before the install month
+      }
+      _currentDate = newDate;
     });
   }
 
