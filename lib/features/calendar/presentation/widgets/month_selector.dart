@@ -43,9 +43,11 @@ class _MonthSelectorState extends State<MonthSelector> {
   void didUpdateWidget(MonthSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.currentDate != oldWidget.currentDate) {
-      setState(() {
-        _isMovingForward = widget.currentDate.isAfter(oldWidget.currentDate);
-      });
+      if (mounted) {
+        setState(() {
+          _isMovingForward = widget.currentDate.isAfter(oldWidget.currentDate);
+        });
+      }
     }
   }
 
@@ -65,7 +67,9 @@ class _MonthSelectorState extends State<MonthSelector> {
             (prevDate.year == installYear && prevDate.month < installMonth));
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0),
+      // Padding here prevents the pill from touching the top boundaries
+      // of its parent Stack in home_page.dart.
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Center(
         child: GestureDetector(
           onHorizontalDragEnd: (details) {
@@ -76,8 +80,10 @@ class _MonthSelectorState extends State<MonthSelector> {
             }
           },
           child: Container(
-            width: 220,
-            height: 44,
+            width: 230,
+            // Use BoxConstraints instead of fixed height so the text
+            // inner paddings dictate the safe bounds, completely avoiding clipping.
+            constraints: const BoxConstraints(minHeight: 46),
             decoration: BoxDecoration(
               color: colorScheme.onSurface.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(100),
@@ -86,24 +92,104 @@ class _MonthSelectorState extends State<MonthSelector> {
                 width: 0.5,
               ),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(100),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Subtle Glow Indicator
-                  _buildGlowIndicator(colorScheme),
-                  // Navigation Items
-                  _buildNavigationRow(
-                    colorScheme: colorScheme,
-                    currentDate: currentDate,
-                    prevDate: prevDate,
-                    nextDate: nextDate,
-                    hasPrevMonth: hasPrevMonth,
-                    onMonthChanged: onMonthChanged,
+            clipBehavior: Clip.none,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                _buildGlowIndicator(colorScheme),
+                // Inner padding gives breathing room to the text vertically
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4.0,
+                    vertical: 6.0,
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IgnorePointer(
+                        ignoring: !hasPrevMonth,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 200),
+                          opacity: hasPrevMonth ? 1.0 : 0.0,
+                          child: CompactNavButton(
+                            icon: Icons.chevron_left,
+                            onPressed: () => onMonthChanged(-1),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          layoutBuilder: (currentChild, previousChildren) {
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              alignment: Alignment.center,
+                              children: <Widget>[
+                                ...previousChildren,
+                                if (currentChild != null) currentChild,
+                              ],
+                            );
+                          },
+                          transitionBuilder: (child, animation) {
+                            final isEntering =
+                                child.key == ValueKey(currentDate.month);
+                            Offset beginOffset;
+                            if (isEntering) {
+                              beginOffset = _isMovingForward
+                                  ? const Offset(0.3, 0)
+                                  : const Offset(-0.3, 0);
+                            } else {
+                              beginOffset = _isMovingForward
+                                  ? const Offset(-0.3, 0)
+                                  : const Offset(0.3, 0);
+                            }
+
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: beginOffset,
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Row(
+                            key: ValueKey(currentDate.month),
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Opacity(
+                                opacity: hasPrevMonth ? 1.0 : 0.0,
+                                child: _buildMonthLabel(
+                                  text: _months[prevDate.month - 1],
+                                  isActive: false,
+                                  colorScheme: colorScheme,
+                                ),
+                              ),
+                              _buildMonthLabel(
+                                text: _months[currentDate.month - 1],
+                                isActive: true,
+                                colorScheme: colorScheme,
+                              ),
+                              _buildMonthLabel(
+                                text: _months[nextDate.month - 1],
+                                isActive: false,
+                                colorScheme: colorScheme,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      CompactNavButton(
+                        icon: Icons.chevron_right,
+                        onPressed: () => onMonthChanged(1),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -113,20 +199,20 @@ class _MonthSelectorState extends State<MonthSelector> {
 
   Widget _buildGlowIndicator(ColorScheme colorScheme) {
     return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 500),
       tween: Tween(begin: 0.0, end: 1.0),
       curve: Curves.easeOutCubic,
       key: ValueKey(widget.currentDate.month),
       builder: (context, value, child) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // Subtle Glow
-            Positioned(
-              bottom: 0,
-              child: Container(
+        return Positioned(
+          bottom: 0,
+          child: Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
+            children: [
+              Container(
                 width: 30 + (8 * value),
-                height: 10,
+                height: 8,
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     center: const Alignment(0, 1.0),
@@ -138,13 +224,9 @@ class _MonthSelectorState extends State<MonthSelector> {
                   ),
                 ),
               ),
-            ),
-            // Minimal Indicator Bar
-            Positioned(
-              bottom: 0,
-              child: Container(
+              Container(
                 width: 12 + (6 * value),
-                height: 1,
+                height: 2,
                 margin: const EdgeInsets.only(bottom: 0.5),
                 decoration: BoxDecoration(
                   color: colorScheme.onSurface.withValues(
@@ -162,100 +244,10 @@ class _MonthSelectorState extends State<MonthSelector> {
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildNavigationRow({
-    required ColorScheme colorScheme,
-    required DateTime currentDate,
-    required DateTime prevDate,
-    required DateTime nextDate,
-    required bool hasPrevMonth,
-    required ValueChanged<int> onMonthChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IgnorePointer(
-            ignoring: !hasPrevMonth,
-            child: Opacity(
-              opacity: hasPrevMonth ? 1.0 : 0.0,
-              child: CompactNavButton(
-                icon: Icons.chevron_left,
-                onPressed: () => onMonthChanged(-1),
-              ),
-            ),
-          ),
-          // Animated Month Labels
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) {
-                final isEntering = child.key == ValueKey(currentDate.month);
-
-                Offset beginOffset;
-                if (isEntering) {
-                  beginOffset = _isMovingForward
-                      ? const Offset(0.3, 0)
-                      : const Offset(-0.3, 0);
-                } else {
-                  beginOffset = _isMovingForward
-                      ? const Offset(-0.3, 0)
-                      : const Offset(0.3, 0);
-                }
-
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: beginOffset,
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                );
-              },
-              child: Row(
-                key: ValueKey(currentDate.month),
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Prev Month
-                  Opacity(
-                    opacity: hasPrevMonth ? 1.0 : 0.0,
-                    child: _buildMonthLabel(
-                      text: _months[prevDate.month - 1],
-                      isActive: false,
-                      colorScheme: colorScheme,
-                    ),
-                  ),
-                  // Current Month
-                  _buildMonthLabel(
-                    text: _months[currentDate.month - 1],
-                    isActive: true,
-                    colorScheme: colorScheme,
-                  ),
-                  // Next Month
-                  _buildMonthLabel(
-                    text: _months[nextDate.month - 1],
-                    isActive: false,
-                    colorScheme: colorScheme,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          CompactNavButton(
-            icon: Icons.chevron_right,
-            onPressed: () => onMonthChanged(1),
-          ),
-        ],
-      ),
     );
   }
 
@@ -266,19 +258,25 @@ class _MonthSelectorState extends State<MonthSelector> {
   }) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: isActive ? 66 : 32,
-      child: AnimatedOpacity(
+      width: isActive ? 68 : 36,
+      alignment: Alignment.center,
+      child: AnimatedDefaultTextStyle(
         duration: const Duration(milliseconds: 300),
-        opacity: isActive ? 1.0 : 0.35,
+        style: TextStyle(
+          fontFamily: 'LeagueSpartan',
+          color: colorScheme.onSurface.withValues(alpha: isActive ? 1.0 : 0.35),
+          fontSize: isActive ? 14 : 11,
+          fontVariations: [FontVariation('wght', isActive ? 600 : 500)],
+          letterSpacing: isActive ? 1.2 : 0.8,
+          // We rely on the natural line height of the font.
+          // Explicitly setting height can cause bounding boxes to clip
+          // characters with tall ascenders (like the top of M, A, R).
+        ),
         child: Text(
           text.toUpperCase(),
-          style: TextStyle(
-            color: colorScheme.onSurface,
-            fontSize: isActive ? 13 : 10,
-            fontVariations: [FontVariation('wght', isActive ? 600 : 500)],
-            letterSpacing: isActive ? 1.2 : 0.8,
-          ),
-          textAlign: TextAlign.center,
+          overflow: TextOverflow.visible,
+          maxLines: 1,
+          softWrap: false,
         ),
       ),
     );
