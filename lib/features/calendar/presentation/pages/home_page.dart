@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:compound/main.dart' show installYear, installMonth;
+import 'package:compound/features/journal/presentation/screens/daily_log_screen.dart';
 import '../widgets/widgets.dart';
 
 /// Home Page
@@ -175,6 +176,35 @@ class _HomePageState extends State<HomePage> {
                             child: CalendarGrid(
                               key: ValueKey(_currentDate),
                               currentDate: _currentDate,
+                              onDateTap: (date) {
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (_, animation, __) =>
+                                        DailyLogScreen(date: date),
+                                    transitionsBuilder:
+                                        (_, animation, __, child) {
+                                          final curved = CurvedAnimation(
+                                            parent: animation,
+                                            curve: Curves.easeOutCubic,
+                                          );
+                                          return SlideTransition(
+                                            position: Tween<Offset>(
+                                              begin: const Offset(0, 1),
+                                              end: Offset.zero,
+                                            ).animate(curved),
+                                            child: FadeTransition(
+                                              opacity: curved,
+                                              child: child,
+                                            ),
+                                          );
+                                        },
+                                    transitionDuration: const Duration(
+                                      milliseconds: 380,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),

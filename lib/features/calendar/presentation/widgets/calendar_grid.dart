@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Calendar Grid Widget
 ///
 /// A transposed calendar grid that displays days of the week
 /// vertically and weeks horizontally. Refined for AMOLED-first
 /// monochromatic design with proper typography hierarchy.
+///
+/// Cells for today and past dates are tappable — [onDateTap] is called
+/// with the full [DateTime] for the selected day.
 class CalendarGrid extends StatelessWidget {
   final DateTime currentDate;
 
-  const CalendarGrid({super.key, required this.currentDate});
+  /// Called when the user taps a past or today's cell.
+  final void Function(DateTime date)? onDateTap;
+
+  const CalendarGrid({super.key, required this.currentDate, this.onDateTap});
 
   static const List<String> _daysOfWeek = [
     'MON',
@@ -99,8 +106,9 @@ class CalendarGrid extends StatelessWidget {
     final isToday = _isToday(date);
     final isPast = _isPast(date);
     final isFuture = !isToday && !isPast;
+    final isTappable = isToday || isPast;
 
-    return Center(
+    final cell = Center(
       child: Container(
         width: isToday ? 54 : 50,
         height: isToday ? 64 : 60,
@@ -165,6 +173,17 @@ class CalendarGrid extends StatelessWidget {
           ],
         ),
       ),
+    );
+
+    if (!isTappable) return cell;
+
+    // Wrap tappable cells (today + past) in an InkWell
+    return _TappableDateCell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onDateTap?.call(DateTime(currentDate.year, currentDate.month, date));
+      },
+      child: cell,
     );
   }
 
@@ -234,6 +253,60 @@ class CalendarGrid extends StatelessWidget {
         }
       }
     }
+  }
+}
+
+/// A subtle ink-splash wrapper for tappable date cells.
+class _TappableDateCell extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _TappableDateCell({required this.child, required this.onTap});
+
+  @override
+  State<_TappableDateCell> createState() => _TappableDateCellState();
+}
+
+class _TappableDateCellState extends State<_TappableDateCell>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pressController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.92,
+    ).animate(CurvedAnimation(parent: _pressController, curve: Curves.easeIn));
+  }
+
+  @override
+  void dispose() {
+    _pressController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _pressController.forward(),
+      onTapUp: (_) {
+        _pressController.reverse();
+        widget.onTap();
+      },
+      onTapCancel: () => _pressController.reverse(),
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) =>
+            Transform.scale(scale: _scaleAnimation.value, child: child),
+        child: widget.child,
+      ),
+    );
   }
 }
 
