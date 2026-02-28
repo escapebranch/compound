@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:compound/core/theme/app_typography.dart';
 import 'package:compound/core/theme/app_radius.dart';
+import 'habit_details_screen.dart';
 
 /// Daily Log Screen
 ///
@@ -130,7 +131,7 @@ class _DailyLogScreenState extends State<DailyLogScreen>
             // ── Floating App Bar ─────────────────────────────────────────────
             SliverAppBar(
               pinned: true,
-              expandedHeight: 160,
+              expandedHeight: 170,
               backgroundColor: colorScheme.surface,
               surfaceTintColor: Colors.transparent,
               leading: IconButton(
@@ -169,6 +170,7 @@ class _DailyLogScreenState extends State<DailyLogScreen>
                     habit: _habits[index],
                     index: index,
                     parentController: _entryAnimController,
+                    date: widget.date,
                     onToggle: () {
                       HapticFeedback.lightImpact();
                       setState(() {
@@ -212,7 +214,7 @@ class _DailyLogScreenState extends State<DailyLogScreen>
 
     return Container(
       decoration: BoxDecoration(color: colorScheme.surface),
-      padding: const EdgeInsets.only(top: 96, left: 20, right: 20, bottom: 16),
+      padding: const EdgeInsets.only(top: 96, left: 20, right: 20, bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.end,
@@ -631,12 +633,14 @@ class _AnimatedHabitTile extends StatefulWidget {
   final int index;
   final AnimationController parentController;
   final VoidCallback onToggle;
+  final DateTime date;
 
   const _AnimatedHabitTile({
     required this.habit,
     required this.index,
     required this.parentController,
     required this.onToggle,
+    required this.date,
   });
 
   @override
@@ -653,7 +657,6 @@ class _AnimatedHabitTileState extends State<_AnimatedHabitTile>
   void initState() {
     super.initState();
 
-    // Staggered entry animation
     final begin = (widget.index * 0.07).clamp(0.0, 0.7);
     final end = (begin + 0.3).clamp(0.0, 1.0);
 
@@ -695,6 +698,30 @@ class _AnimatedHabitTileState extends State<_AnimatedHabitTile>
     super.dispose();
   }
 
+  void _navigateToDetails() {
+    HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, animation, __) => HabitDetailsScreen(
+          habitId: widget.habit.id,
+          habitName: widget.habit.name,
+          habitIcon: widget.habit.icon,
+          isDone: widget.habit.done,
+          date: widget.date,
+        ),
+        transitionsBuilder: (_, animation, __, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
+          return FadeTransition(opacity: curved, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 350),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -708,7 +735,8 @@ class _AnimatedHabitTileState extends State<_AnimatedHabitTile>
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: GestureDetector(
-          onTap: widget.onToggle,
+          onTap: _navigateToDetails,
+          onLongPress: widget.onToggle,
           behavior: HitTestBehavior.opaque,
           child: AnimatedBuilder(
             animation: _checkController,
@@ -783,30 +811,39 @@ class _AnimatedHabitTileState extends State<_AnimatedHabitTile>
                         ),
                       ),
                     ),
-                    // Check indicator
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: widget.habit.done
-                            ? colorScheme.onSurface
-                            : Colors.transparent,
-                        border: Border.all(
-                          color: widget.habit.done
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurface.withValues(alpha: 0.2),
-                          width: 1.5,
+                    // Toggle checkbox (long press or explicit tap area)
+                    GestureDetector(
+                      onTap: widget.onToggle,
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: widget.habit.done
+                                ? colorScheme.onSurface
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: widget.habit.done
+                                  ? colorScheme.onSurface
+                                  : colorScheme.onSurface.withValues(
+                                      alpha: 0.2,
+                                    ),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: widget.habit.done
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  size: 13,
+                                  color: colorScheme.surface,
+                                )
+                              : null,
                         ),
                       ),
-                      child: widget.habit.done
-                          ? Icon(
-                              Icons.check_rounded,
-                              size: 13,
-                              color: colorScheme.surface,
-                            )
-                          : null,
                     ),
                   ],
                 ),
