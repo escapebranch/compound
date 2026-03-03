@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:compound/main.dart' show installYear, installMonth;
+import 'package:compound/core/theme/theme_notifier.dart';
 import 'package:compound/features/journal/presentation/screens/daily_log_screen.dart';
+import 'package:compound/features/journal/presentation/screens/habit_configuration_screen.dart';
 import '../widgets/widgets.dart';
 
 /// Home Page
@@ -15,6 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime _currentDate = DateTime.now();
 
   void _changeMonth(int offset) {
@@ -33,8 +36,11 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: _buildEndDrawer(context, colorScheme, textTheme, isDark),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -62,7 +68,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
                       icon: Icon(
                         Icons.menu_rounded,
                         color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -235,6 +241,273 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  Widget _buildEndDrawer(
+    BuildContext context,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    bool isDark,
+  ) {
+    return Drawer(
+      width: MediaQuery.sizeOf(context).width * 0.84,
+      backgroundColor: colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(left: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  'Settings',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontVariations: [const FontVariation('wght', 600)],
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  'Personalize your workspace',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.56),
+                    fontVariations: [const FontVariation('wght', 400)],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              _buildThemeCard(colorScheme, textTheme, isDark),
+              const SizedBox(height: 10),
+              _buildActionCard(
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+                icon: Icons.tune_rounded,
+                title: 'Habit Configuration',
+                subtitle: 'Create, edit, and manage habits',
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const HabitConfigurationScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeCard(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    bool isDark,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.04),
+        border: Border.all(
+          color: colorScheme.onSurface.withValues(alpha: isDark ? 0.09 : 0.12),
+          width: 0.8,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurface.withValues(
+                      alpha: isDark ? 0.12 : 0.08,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    _iconForTheme(themeNotifier.value),
+                    size: 19,
+                    color: colorScheme.onSurface.withValues(alpha: 0.84),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Theme',
+                        style: textTheme.titleSmall?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontVariations: [const FontVariation('wght', 560)],
+                        ),
+                      ),
+                      Text(
+                        'Light, Auto, or Dark',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.58),
+                          fontVariations: [const FontVariation('wght', 400)],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: colorScheme.onSurface.withValues(alpha: 0.46),
+                  size: 20,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ValueListenableBuilder<ThemeMode>(
+                valueListenable: themeNotifier,
+                builder: (context, selectedMode, _) {
+                  return SegmentedButton<ThemeMode>(
+                    multiSelectionEnabled: false,
+                    showSelectedIcon: false,
+                    style: ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      padding: WidgetStateProperty.all(
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                      textStyle: WidgetStateProperty.all(
+                        textTheme.labelMedium?.copyWith(
+                          fontVariations: [const FontVariation('wght', 500)],
+                        ),
+                      ),
+                    ),
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('Light'),
+                        icon: Icon(Icons.light_mode_rounded, size: 16),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text('Auto'),
+                        icon: Icon(Icons.brightness_auto_rounded, size: 16),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        label: Text('Dark'),
+                        icon: Icon(Icons.dark_mode_rounded, size: 16),
+                      ),
+                    ],
+                    selected: {selectedMode},
+                    onSelectionChanged: (selected) {
+                      if (selected.isNotEmpty) {
+                        themeNotifier.value = selected.first;
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionCard({
+    required ColorScheme colorScheme,
+    required TextTheme textTheme,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            color: colorScheme.onSurface.withValues(alpha: 0.04),
+            border: Border.all(
+              color: colorScheme.onSurface.withValues(alpha: 0.1),
+              width: 0.8,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurface.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 19,
+                    color: colorScheme.onSurface.withValues(alpha: 0.84),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: textTheme.titleSmall?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontVariations: [const FontVariation('wght', 560)],
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.58),
+                          fontVariations: [const FontVariation('wght', 400)],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: colorScheme.onSurface.withValues(alpha: 0.46),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _iconForTheme(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return Icons.light_mode_rounded;
+      case ThemeMode.system:
+        return Icons.brightness_auto_rounded;
+      case ThemeMode.dark:
+        return Icons.dark_mode_rounded;
+    }
   }
 
   String _getMonthName(int month) {
