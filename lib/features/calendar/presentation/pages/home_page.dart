@@ -68,7 +68,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+                      onPressed: () =>
+                          _scaffoldKey.currentState?.openEndDrawer(),
                       icon: Icon(
                         Icons.menu_rounded,
                         color: colorScheme.onSurface.withValues(alpha: 0.7),
@@ -384,7 +385,7 @@ class _HomePageState extends State<HomePage> {
                     style: ButtonStyle(
                       visualDensity: VisualDensity.compact,
                       padding: WidgetStateProperty.all(
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                       ),
                       textStyle: WidgetStateProperty.all(
                         textTheme.labelMedium?.copyWith(
@@ -395,17 +396,26 @@ class _HomePageState extends State<HomePage> {
                     segments: const [
                       ButtonSegment(
                         value: ThemeMode.light,
-                        label: Text('Light'),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Light'),
+                        ),
                         icon: Icon(Icons.light_mode_rounded, size: 16),
                       ),
                       ButtonSegment(
                         value: ThemeMode.system,
-                        label: Text('Auto'),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Auto'),
+                        ),
                         icon: Icon(Icons.brightness_auto_rounded, size: 16),
                       ),
                       ButtonSegment(
                         value: ThemeMode.dark,
-                        label: Text('Dark'),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Dark'),
+                        ),
                         icon: Icon(Icons.dark_mode_rounded, size: 16),
                       ),
                     ],

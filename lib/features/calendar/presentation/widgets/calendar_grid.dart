@@ -57,8 +57,8 @@ class CalendarGrid extends StatelessWidget {
                       ),
                     ),
                     alignment: Alignment.center,
-                    child: Transform.rotate(
-                      angle: 1.57,
+                    child: RotatedBox(
+                      quarterTurns: 1,
                       child: Text(
                         day,
                         style: textTheme.labelSmall?.copyWith(
@@ -69,6 +69,8 @@ class CalendarGrid extends StatelessWidget {
                           letterSpacing: 1.0,
                         ),
                         textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.visible,
                       ),
                     ),
                   ),
