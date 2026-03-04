@@ -148,7 +148,7 @@ class _YearPickerButtonState extends State<YearPickerButton> {
                                           milliseconds: 150,
                                         ),
                                         style: TextStyle(
-                                          fontFamily: 'LeagueSpartan',
+                                          fontFamily: 'Sora',
                                           color: isSelected
                                               ? colorScheme.onSurface
                                               : colorScheme.onSurface

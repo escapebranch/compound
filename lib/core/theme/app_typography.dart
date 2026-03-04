@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// A refined type hierarchy with intentional weight distribution.
 /// Fixes overuse of bold - proper hierarchy for readability.
 abstract final class AppTypography {
-  static const String _fontFamily = 'LeagueSpartan';
+  static const String _fontFamily = 'Sora';
 
   // ============================================
   // DISPLAY STYLES (Hero content)

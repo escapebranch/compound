@@ -18,7 +18,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      fontFamily: 'LeagueSpartan',
+      fontFamily: 'Sora',
 
       // Color Scheme - Pure black AMOLED
       colorScheme: const ColorScheme.dark(
@@ -348,7 +348,7 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      fontFamily: 'LeagueSpartan',
+      fontFamily: 'Sora',
 
       // Color Scheme - Pure white, monochrome
       colorScheme: const ColorScheme.light(

@@ -28,6 +28,6 @@ flutter:
   uses-material-design: true
 
   fonts:
-    - family: LeagueSpartan
+    - family: Sora
       fonts:
-        - asset: assets/font/LeagueSpartan-VF.ttf
+        - asset: assets/font/Sora-Variable.ttf

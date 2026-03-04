@@ -263,7 +263,7 @@ class _MonthSelectorState extends State<MonthSelector> {
       child: AnimatedDefaultTextStyle(
         duration: const Duration(milliseconds: 300),
         style: TextStyle(
-          fontFamily: 'LeagueSpartan',
+          fontFamily: 'Sora',
           color: colorScheme.onSurface.withValues(alpha: isActive ? 1.0 : 0.35),
           fontSize: isActive ? 14 : 11,
           fontVariations: [FontVariation('wght', isActive ? 600 : 500)],
