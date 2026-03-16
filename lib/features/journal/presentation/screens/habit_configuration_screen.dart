@@ -342,7 +342,7 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<_HabitFrequency>(
-                value: _frequency,
+                initialValue: _frequency,
                 decoration: const InputDecoration(labelText: 'Frequency'),
                 items: _HabitFrequency.values
                     .map(
