@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:compound/core/data/app_database.dart';
 import 'package:compound/core/theme/app_radius.dart';
 import 'package:compound/core/theme/app_shadows.dart';
 import 'package:compound/core/theme/app_spacing.dart';
 import 'package:compound/core/theme/app_typography.dart';
+import 'package:compound/main.dart';
+import 'package:drift/drift.dart' hide Column;
 
 class HabitConfigurationScreen extends StatefulWidget {
   const HabitConfigurationScreen({super.key});
@@ -13,10 +16,8 @@ class HabitConfigurationScreen extends StatefulWidget {
 }
 
 class _HabitConfigurationScreenState extends State<HabitConfigurationScreen> {
-  final List<_HabitConfigItem> _habits = [];
-
   Future<void> _onAddHabitTap() async {
-    final habit = await showModalBottomSheet<_HabitConfigItem>(
+    final result = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -25,13 +26,9 @@ class _HabitConfigurationScreenState extends State<HabitConfigurationScreen> {
       builder: (context) => const _CreateHabitBottomSheet(),
     );
 
-    if (habit == null || !mounted) {
-      return;
+    if (result == true) {
+      setState(() {});
     }
-
-    setState(() {
-      _habits.insert(0, habit);
-    });
   }
 
   @override
@@ -45,70 +42,90 @@ class _HabitConfigurationScreenState extends State<HabitConfigurationScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Habit Configuration')),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenHorizontal,
-            vertical: AppSpacing.md,
-          ),
-          child: _habits.isEmpty
-              ? _EmptyHabitsState(
+        child: StreamBuilder<List<HabitWithTimes>>(
+          stream: database.watchHabitsWithTimes(),
+          builder: (context, snapshot) {
+            final habits = snapshot.data ?? [];
+            
+            if (habits.isEmpty && snapshot.connectionState == ConnectionState.active) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenHorizontal),
+                child: _EmptyHabitsState(
                   onAddHabit: _onAddHabitTap,
                   colorScheme: colorScheme,
                   textTheme: textTheme,
-                )
-              : Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      decoration: BoxDecoration(
-                        color: colorScheme.onSurface.withValues(alpha: 0.04),
-                        borderRadius: AppRadius.roundedXl,
-                        border: Border.all(
-                          color: colorScheme.outline.withValues(alpha: 0.08),
-                          width: 0.8,
-                        ),
-                        boxShadow: surfaceShadows,
+                ),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenHorizontal,
+                vertical: AppSpacing.md,
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: colorScheme.onSurface.withValues(alpha: 0.04),
+                      borderRadius: AppRadius.roundedXl,
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.08),
+                        width: 0.8,
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.insights_rounded,
-                            size: 20,
-                            color: colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              '${_habits.length} habits configured',
-                              style: AppTypography.titleSmall.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
+                      boxShadow: surfaceShadows,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.insights_rounded,
+                          size: 20,
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            '${habits.length} habits configured',
+                            style: AppTypography.titleSmall.copyWith(
+                              color: colorScheme.onSurface,
                             ),
                           ),
-                          FilledButton.tonalIcon(
-                            onPressed: _onAddHabitTap,
-                            icon: const Icon(Icons.add_rounded),
-                            label: const Text('Add'),
-                          ),
-                        ],
-                      ),
+                        ),
+                        FilledButton.tonalIcon(
+                          onPressed: _onAddHabitTap,
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Add'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Expanded(
-                      child: ListView.separated(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _habits.length,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: AppSpacing.md),
-                        itemBuilder: (context, index) {
-                          final habit = _habits[index];
-                          return _HabitCard(habit: habit);
-                        },
-                      ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Expanded(
+                    child: ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: habits.length,
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.md),
+                      itemBuilder: (context, index) {
+                        final habitWithTimes = habits[index];
+                        return FutureBuilder<List<HabitTime>>(
+                          future: habitWithTimes.timesFuture,
+                          builder: (context, timeSnapshot) {
+                            return _HabitCard(
+                              habit: habitWithTimes.habit,
+                              times: timeSnapshot.data ?? [],
+                            );
+                          },
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            );
+          }
         ),
       ),
     );
@@ -226,11 +243,18 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
   final _nameController = TextEditingController();
   final _goalController = TextEditingController();
 
-  _HabitFrequency _frequency = _HabitFrequency.daily;
-  int _targetPerDay = 1;
   IconData _selectedIcon = Icons.check_circle_outline_rounded;
-  bool _enableReminder = false;
-  TimeOfDay _reminderTime = const TimeOfDay(hour: 8, minute: 0);
+  
+  // Day selection and times
+  final Map<int, TimeRange?> _selectedDays = {
+    1: null, // Mon
+    2: null, // Tue
+    3: null, // Wed
+    4: null, // Thu
+    5: null, // Fri
+    6: null, // Sat
+    7: null, // Sun
+  };
 
   final List<IconData> _iconOptions = const [
     Icons.check_circle_outline_rounded,
@@ -239,6 +263,9 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
     Icons.menu_book_rounded,
     Icons.water_drop_rounded,
     Icons.nightlight_round,
+    Icons.directions_run,
+    Icons.coffee,
+    Icons.code,
   ];
 
   @override
@@ -248,35 +275,97 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
     super.dispose();
   }
 
-  Future<void> _pickReminderTime() async {
-    final selected = await showTimePicker(
-      context: context,
-      initialTime: _reminderTime,
-    );
-    if (selected == null || !mounted) {
-      return;
-    }
+  void _toggleDay(int day) {
     setState(() {
-      _reminderTime = selected;
+      if (_selectedDays[day] != null || _isDaySelected(day)) {
+        if (_selectedDays[day] == null) {
+          // If selected but no time range yet (defaulting to a range)
+           _selectedDays[day] = const TimeRange(
+            start: TimeOfDay(hour: 8, minute: 0),
+            end: TimeOfDay(hour: 9, minute: 0),
+          );
+        } else {
+           _selectedDays[day] = null;
+        }
+      } else {
+        _selectedDays[day] = const TimeRange(
+          start: TimeOfDay(hour: 8, minute: 0),
+          end: TimeOfDay(hour: 9, minute: 0),
+        );
+      }
     });
   }
 
-  void _createHabit() {
+  bool _isDaySelected(int day) => _selectedDays[day] != null;
+
+  Future<void> _editTime(int day) async {
+    final currentRange = _selectedDays[day] ?? const TimeRange(
+      start: TimeOfDay(hour: 8, minute: 0),
+      end: TimeOfDay(hour: 9, minute: 0),
+    );
+
+    final result = await showDialog<TimeRange>(
+      context: context,
+      builder: (context) => _TimeRangePickerDialog(initialRange: currentRange),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedDays[day] = result;
+      });
+    }
+  }
+
+  void _applyToAll(TimeRange range) {
+    setState(() {
+      for (final day in _selectedDays.keys) {
+        if (_selectedDays[day] != null) {
+          _selectedDays[day] = range;
+        }
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Applied to all selected days'), duration: Duration(seconds: 1)),
+    );
+  }
+
+  Future<void> _createHabit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    final item = _HabitConfigItem(
+    final selectedDayEntries = _selectedDays.entries.where((e) => e.value != null).toList();
+    if (selectedDayEntries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one day')),
+      );
+      return;
+    }
+
+    final habitCompanion = HabitsCompanion.insert(
       name: _nameController.text.trim(),
-      goal: _goalController.text.trim(),
-      icon: _selectedIcon,
-      frequency: _frequency,
-      targetPerDay: _targetPerDay,
-      reminderTime: _enableReminder ? _reminderTime : null,
+      goal: Value(_goalController.text.trim()),
+      iconCodePoint: _selectedIcon.codePoint,
       createdAt: DateTime.now(),
     );
 
-    Navigator.of(context).pop(item);
+    final timesCompanions = selectedDayEntries.map((e) {
+      final range = e.value!;
+      return HabitTimesCompanion.insert(
+        habitId: 0, // Will be updated in transaction
+        dayOfWeek: e.key,
+        startHour: range.start.hour,
+        startMinute: range.start.minute,
+        endHour: range.end.hour,
+        endMinute: range.end.minute,
+      );
+    }).toList();
+
+    await database.createHabit(habitCompanion, timesCompanions);
+
+    if (mounted) {
+      Navigator.of(context).pop(true);
+    }
   }
 
   @override
@@ -308,7 +397,7 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Add the essentials and start tracking instantly.',
+                'Define your routine and set your schedule.',
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.62),
                 ),
@@ -325,9 +414,6 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Habit name is required';
                   }
-                  if (value.trim().length < 2) {
-                    return 'Use at least 2 characters';
-                  }
                   return null;
                 },
               ),
@@ -339,27 +425,6 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
                   labelText: 'Goal (optional)',
                   hintText: 'e.g. 20 minutes',
                 ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              DropdownButtonFormField<_HabitFrequency>(
-                initialValue: _frequency,
-                decoration: const InputDecoration(labelText: 'Frequency'),
-                items: _HabitFrequency.values
-                    .map(
-                      (frequency) => DropdownMenuItem(
-                        value: frequency,
-                        child: Text(frequency.label),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: (value) {
-                  if (value == null) {
-                    return;
-                  }
-                  setState(() {
-                    _frequency = value;
-                  });
-                },
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
@@ -374,7 +439,7 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
                 runSpacing: AppSpacing.sm,
                 children: _iconOptions
                     .map((icon) {
-                      final isSelected = icon == _selectedIcon;
+                      final isSelected = icon.codePoint == _selectedIcon.codePoint;
                       return InkWell(
                         borderRadius: AppRadius.roundedMd,
                         onTap: () {
@@ -384,8 +449,8 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
-                          width: 48,
-                          height: 48,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? colorScheme.onSurface.withValues(alpha: 0.12)
@@ -401,7 +466,7 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
                           ),
                           child: Icon(
                             icon,
-                            size: 22,
+                            size: 20,
                             color: colorScheme.onSurface.withValues(
                               alpha: isSelected ? 0.95 : 0.65,
                             ),
@@ -412,83 +477,65 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
                     .toList(growable: false),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurface.withValues(alpha: 0.03),
-                  borderRadius: AppRadius.roundedLg,
-                  border: Border.all(
-                    color: colorScheme.outline.withValues(alpha: 0.08),
-                    width: 0.8,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Target / day',
-                          style: AppTypography.titleSmall.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '$_targetPerDay',
-                          style: AppTypography.labelLarge.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Slider(
-                      value: _targetPerDay.toDouble(),
-                      min: 1,
-                      max: 8,
-                      divisions: 7,
-                      label: _targetPerDay.toString(),
-                      onChanged: (value) {
-                        setState(() {
-                          _targetPerDay = value.round();
-                        });
-                      },
-                    ),
-                    SwitchListTile.adaptive(
-                      contentPadding: EdgeInsets.zero,
-                      value: _enableReminder,
-                      onChanged: (value) {
-                        setState(() {
-                          _enableReminder = value;
-                        });
-                      },
-                      title: Text(
-                        'Enable reminder',
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      subtitle: Text(
-                        _enableReminder
-                            ? 'At ${_reminderTime.format(context)}'
-                            : 'Reminder off',
-                        style: AppTypography.bodySmall.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.55),
-                        ),
-                      ),
-                    ),
-                    if (_enableReminder)
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: _pickReminderTime,
-                          icon: const Icon(Icons.schedule_rounded),
-                          label: const Text('Set reminder time'),
-                        ),
-                      ),
-                  ],
+              Text(
+                'Schedule',
+                style: AppTypography.titleSmall.copyWith(
+                  color: colorScheme.onSurface,
                 ),
               ),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: [1, 2, 3, 4, 5, 6, 7].map((day) {
+                  final isSelected = _isDaySelected(day);
+                  final dayName = _getDayNameShort(day);
+                  return FilterChip(
+                    label: Text(dayName),
+                    selected: isSelected,
+                    onSelected: (_) => _toggleDay(day),
+                    showCheckmark: false,
+                    labelStyle: AppTypography.labelMedium.copyWith(
+                      color: isSelected ? colorScheme.surface : colorScheme.onSurface,
+                    ),
+                    selectedColor: colorScheme.onSurface,
+                    backgroundColor: colorScheme.onSurface.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(borderRadius: AppRadius.roundedFull),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ..._selectedDays.entries.where((e) => e.value != null).map((e) {
+                final day = e.key;
+                final range = e.value!;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurface.withValues(alpha: 0.03),
+                    borderRadius: AppRadius.roundedLg,
+                    border: Border.all(color: colorScheme.outline.withValues(alpha: 0.08)),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        _getDayNameFull(day),
+                        style: AppTypography.titleSmall.copyWith(color: colorScheme.onSurface),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => _editTime(day),
+                        child: Text('${range.start.format(context)} - ${range.end.format(context)}'),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.copy_all_rounded, size: 18),
+                        onPressed: () => _applyToAll(range),
+                        tooltip: 'Apply to all selected',
+                      ),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: AppSpacing.xl),
               SizedBox(
                 width: double.infinity,
@@ -513,12 +560,39 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
       ),
     );
   }
+
+  String _getDayNameShort(int day) {
+    return switch (day) {
+      1 => 'Mon',
+      2 => 'Tue',
+      3 => 'Wed',
+      4 => 'Thu',
+      5 => 'Fri',
+      6 => 'Sat',
+      7 => 'Sun',
+      _ => '',
+    };
+  }
+
+  String _getDayNameFull(int day) {
+    return switch (day) {
+      1 => 'Monday',
+      2 => 'Tuesday',
+      3 => 'Wednesday',
+      4 => 'Thursday',
+      5 => 'Friday',
+      6 => 'Saturday',
+      7 => 'Sunday',
+      _ => '',
+    };
+  }
 }
 
 class _HabitCard extends StatelessWidget {
-  const _HabitCard({required this.habit});
+  const _HabitCard({required this.habit, required this.times});
 
-  final _HabitConfigItem habit;
+  final Habit habit;
+  final List<HabitTime> times;
 
   @override
   Widget build(BuildContext context) {
@@ -551,7 +625,7 @@ class _HabitCard extends StatelessWidget {
               ),
             ),
             child: Icon(
-              habit.icon,
+              IconData(habit.iconCodePoint, fontFamily: 'MaterialIcons'),
               size: 22,
               color: colorScheme.onSurface.withValues(alpha: 0.8),
             ),
@@ -568,10 +642,10 @@ class _HabitCard extends StatelessWidget {
                     fontVariations: const [FontVariation('wght', 600)],
                   ),
                 ),
-                if (habit.goal.isNotEmpty) ...[
+                if (habit.goal?.isNotEmpty ?? false) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    habit.goal,
+                    habit.goal!,
                     style: AppTypography.bodyMedium.copyWith(
                       color: colorScheme.onSurface.withValues(alpha: 0.62),
                     ),
@@ -583,27 +657,18 @@ class _HabitCard extends StatelessWidget {
                   runSpacing: AppSpacing.sm,
                   children: [
                     _MetaPill(
-                      icon: Icons.repeat_rounded,
-                      label: habit.frequency.label,
+                      icon: Icons.calendar_month_rounded,
+                      label: '${times.length} days',
                     ),
-                    _MetaPill(
-                      icon: Icons.flag_rounded,
-                      label: '${habit.targetPerDay}/day',
-                    ),
-                    if (habit.reminderTime != null)
+                    if (times.isNotEmpty)
                       _MetaPill(
-                        icon: Icons.alarm_rounded,
-                        label: habit.reminderTime!.format(context),
+                        icon: Icons.schedule_rounded,
+                        label: '${TimeOfDay(hour: times.first.startHour, minute: times.first.startMinute).format(context)} - ${TimeOfDay(hour: times.first.endHour, minute: times.first.endMinute).format(context)}',
                       ),
                   ],
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: colorScheme.onSurface.withValues(alpha: 0.4),
           ),
         ],
       ),
@@ -680,34 +745,62 @@ class _OrbIcon extends StatelessWidget {
   }
 }
 
-class _HabitConfigItem {
-  const _HabitConfigItem({
-    required this.name,
-    required this.goal,
-    required this.icon,
-    required this.frequency,
-    required this.targetPerDay,
-    required this.reminderTime,
-    required this.createdAt,
-  });
+class TimeRange {
+  final TimeOfDay start;
+  final TimeOfDay end;
 
-  final String name;
-  final String goal;
-  final IconData icon;
-  final _HabitFrequency frequency;
-  final int targetPerDay;
-  final TimeOfDay? reminderTime;
-  final DateTime createdAt;
+  const TimeRange({required this.start, required this.end});
 }
 
-enum _HabitFrequency { daily, weekdays, custom }
+class _TimeRangePickerDialog extends StatefulWidget {
+  final TimeRange initialRange;
 
-extension on _HabitFrequency {
-  String get label {
-    return switch (this) {
-      _HabitFrequency.daily => 'Daily',
-      _HabitFrequency.weekdays => 'Weekdays',
-      _HabitFrequency.custom => 'Custom',
-    };
+  const _TimeRangePickerDialog({required this.initialRange});
+
+  @override
+  State<_TimeRangePickerDialog> createState() => _TimeRangePickerDialogState();
+}
+
+class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
+  late TimeOfDay _start;
+  late TimeOfDay _end;
+
+  @override
+  void initState() {
+    super.initState();
+    _start = widget.initialRange.start;
+    _end = widget.initialRange.end;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select Time Range'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: const Text('Start Time'),
+            trailing: Text(_start.format(context)),
+            onTap: () async {
+              final picked = await showTimePicker(context: context, initialTime: _start);
+              if (picked != null) setState(() => _start = picked);
+            },
+          ),
+          ListTile(
+            title: const Text('End Time'),
+            trailing: Text(_end.format(context)),
+            onTap: () async {
+              final picked = await showTimePicker(context: context, initialTime: _end);
+              if (picked != null) setState(() => _end = picked);
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context, TimeRange(start: _start, end: _end)), child: const Text('OK')),
+      ],
+    );
   }
 }
