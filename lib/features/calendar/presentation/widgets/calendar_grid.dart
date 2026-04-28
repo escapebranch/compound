@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:compound/main.dart';
+import 'package:compound/core/data/app_database.dart';
 
 /// Calendar Grid Widget
-///
-/// A transposed calendar grid that displays days of the week
-/// vertically and weeks horizontally. Refined for AMOLED-first
-/// monochromatic design with proper typography hierarchy.
-///
-/// Cells for today and past dates are tappable — [onDateTap] is called
-/// with the full [DateTime] for the selected day.
 class CalendarGrid extends StatelessWidget {
   final DateTime currentDate;
 
@@ -35,66 +30,76 @@ class CalendarGrid extends StatelessWidget {
 
     final weekData = _generateMonthData(currentDate);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: _daysOfWeek.map((day) {
-            return Container(
-              height: 75,
-              margin: const EdgeInsets.only(bottom: 8.0),
-              child: Row(
-                children: [
-                  // Day Label - Matching date cell styling
-                  Container(
-                    width: 30,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      color: colorScheme.onSurface.withValues(alpha: 0.05),
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.06),
-                        width: 0.5,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: RotatedBox(
-                      quarterTurns: 1,
-                      child: Text(
-                        day,
-                        style: textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant.withValues(
-                            alpha: 0.6,
+    return FutureBuilder<List<HabitLogWithTime>>(
+      future: database.getLogsWithTimesForMonth(currentDate.year, currentDate.month),
+      builder: (context, snapshot) {
+        final logs = snapshot.data ?? [];
+        
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: _daysOfWeek.map((day) {
+                return Container(
+                  height: 75,
+                  margin: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    children: [
+                      // Day Label
+                      Container(
+                        width: 30,
+                        height: double.infinity,
+                        decoration: BoxDecoration(
+                          color: colorScheme.onSurface.withValues(alpha: 0.05),
+                          border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.06),
+                            width: 0.5,
                           ),
-                          fontVariations: [const FontVariation('wght', 500)],
-                          letterSpacing: 1.0,
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.visible,
+                        alignment: Alignment.center,
+                        child: RotatedBox(
+                          quarterTurns: 1,
+                          child: Text(
+                            day,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.6,
+                              ),
+                              fontVariations: [const FontVariation('wght', 500)],
+                              letterSpacing: 1.0,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      // Dates for this day
+                      Expanded(
+                        child: Row(
+                          children: weekData[day]!.map((date) {
+                            if (date == null) return const Expanded(child: SizedBox());
+                            
+                            final dayLogs = logs.where((l) => l.log.date.day == date).toList();
+                            
+                            return Expanded(
+                              child: _buildDateCell(
+                                date: date,
+                                colorScheme: colorScheme,
+                                textTheme: textTheme,
+                                dayLogs: dayLogs,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  // Dates for this day
-                  Expanded(
-                    child: Row(
-                      children: weekData[day]!.map((date) {
-                        return Expanded(
-                          child: date == null
-                              ? const SizedBox()
-                              : _buildDateCell(
-                                  date: date,
-                                  colorScheme: colorScheme,
-                                  textTheme: textTheme,
-                                ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              }).toList(),
             );
-          }).toList(),
+          },
         );
       },
     );
@@ -104,11 +109,22 @@ class CalendarGrid extends StatelessWidget {
     required int date,
     required ColorScheme colorScheme,
     required TextTheme textTheme,
+    required List<HabitLogWithTime> dayLogs,
   }) {
     final isToday = _isToday(date);
     final isPast = _isPast(date);
     final isFuture = !isToday && !isPast;
     final isTappable = isToday || isPast;
+
+    final segments = dayLogs.map((hl) {
+      final startMinutes = hl.time.startHour * 60 + hl.time.startMinute;
+      final endMinutes = hl.time.endHour * 60 + hl.time.endMinute;
+      return _EmotionSegment(
+        startPercent: startMinutes / 1440.0,
+        endPercent: endMinutes / 1440.0,
+        emotion: hl.log.emotion ?? 2,
+      );
+    }).toList();
 
     final cell = Center(
       child: Container(
@@ -131,13 +147,11 @@ class CalendarGrid extends StatelessWidget {
           ),
           boxShadow: isToday
               ? [
-                  // Outer Glow
                   BoxShadow(
                     color: colorScheme.onSurface.withValues(alpha: 0.2),
                     blurRadius: 20,
                     spreadRadius: 1,
                   ),
-                  // Professional Shadow for depth
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.4),
                     blurRadius: 12,
@@ -149,6 +163,15 @@ class CalendarGrid extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
+            if (!isFuture)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _ProportionalBackgroundPainter(
+                    segments: segments,
+                    isFaded: isPast,
+                  ),
+                ),
+              ),
             if (isFuture)
               Positioned.fill(
                 child: CustomPaint(
@@ -179,7 +202,6 @@ class CalendarGrid extends StatelessWidget {
 
     if (!isTappable) return cell;
 
-    // Wrap tappable cells (today + past) in an InkWell
     return _TappableDateCell(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -255,6 +277,51 @@ class CalendarGrid extends StatelessWidget {
         }
       }
     }
+  }
+}
+
+class _EmotionSegment {
+  final double startPercent;
+  final double endPercent;
+  final int emotion;
+  _EmotionSegment({required this.startPercent, required this.endPercent, required this.emotion});
+}
+
+class _ProportionalBackgroundPainter extends CustomPainter {
+  final List<_EmotionSegment> segments;
+  final bool isFaded;
+
+  _ProportionalBackgroundPainter({
+    required this.segments,
+    required this.isFaded,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final opacity = isFaded ? 0.3 : 1.0;
+    
+    for (var segment in segments) {
+      final top = segment.startPercent * size.height;
+      final bottom = segment.endPercent * size.height;
+      
+      Color color;
+      switch (segment.emotion) {
+        case 1: color = Colors.orange; break;
+        case 2: color = Colors.yellow; break;
+        case 3: color = Colors.green; break;
+        default: color = Colors.transparent;
+      }
+
+      if (color != Colors.transparent) {
+        final paint = Paint()..color = color.withValues(alpha: 0.6 * opacity);
+        canvas.drawRect(Rect.fromLTRB(0, top, size.width, bottom), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ProportionalBackgroundPainter oldDelegate) {
+    return oldDelegate.segments != segments || oldDelegate.isFaded != isFaded;
   }
 }
 

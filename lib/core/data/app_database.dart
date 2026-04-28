@@ -37,6 +37,7 @@ class HabitLogs extends Table {
   IntColumn get habitTimeId => integer().references(HabitTimes, #id).nullable()();
   DateTimeColumn get date => dateTime()(); // Only the date part is used
   BoolColumn get completed => boolean().withDefault(const Constant(false))();
+  IntColumn get emotion => integer().nullable()(); // 1: Orange, 2: Yellow, 3: Green
 }
 
 @DriftDatabase(tables: [AppSettings, Habits, HabitTimes, HabitLogs])
@@ -44,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -59,6 +60,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 3) {
           await m.createTable(habitLogs);
+        }
+        if (from < 4) {
+          await m.addColumn(habitLogs, habitLogs.emotion);
         }
       },
     );
@@ -110,7 +114,7 @@ class AppDatabase extends _$AppDatabase {
 
   // --- Logs ---
 
-  Future<void> toggleHabitLog(int habitId, int? habitTimeId, DateTime date, bool completed) async {
+  Future<void> toggleHabitLog(int habitId, int? habitTimeId, DateTime date, bool completed, {int? emotion}) async {
     final dateOnly = DateTime(date.year, date.month, date.day);
     final query = select(habitLogs)
       ..where((l) => l.habitId.equals(habitId))
@@ -125,13 +129,17 @@ class AppDatabase extends _$AppDatabase {
     final existing = await query.getSingleOrNull();
     if (existing != null) {
       await (update(habitLogs)..where((l) => l.id.equals(existing.id)))
-          .write(HabitLogsCompanion(completed: Value(completed)));
+          .write(HabitLogsCompanion(
+            completed: Value(completed),
+            emotion: Value(completed ? (emotion ?? existing.emotion) : null),
+          ));
     } else {
       await into(habitLogs).insert(HabitLogsCompanion.insert(
         habitId: habitId,
         habitTimeId: Value(habitTimeId),
         date: dateOnly,
         completed: Value(completed),
+        emotion: Value(completed ? emotion : null),
       ));
     }
   }
@@ -139,6 +147,24 @@ class AppDatabase extends _$AppDatabase {
   Future<List<HabitLog>> getLogsForDate(DateTime date) {
     final dateOnly = DateTime(date.year, date.month, date.day);
     return (select(habitLogs)..where((l) => l.date.equals(dateOnly))).get();
+  }
+
+  Future<List<HabitLogWithTime>> getLogsWithTimesForMonth(int year, int month) async {
+    final startOfMonth = DateTime(year, month, 1);
+    final endOfMonth = DateTime(year, month + 1, 0);
+    
+    final logs = await (select(habitLogs)
+          ..where((l) => l.date.isBetweenValues(startOfMonth, endOfMonth))
+          ..where((l) => l.completed.equals(true)))
+        .get();
+        
+    final habitTimeIds = logs.map((l) => l.habitTimeId).whereType<int>().toSet().toList();
+    final times = await (select(habitTimes)..where((t) => t.id.isIn(habitTimeIds))).get();
+    
+    return logs.map((log) {
+      final time = times.firstWhere((t) => t.id == log.habitTimeId);
+      return HabitLogWithTime(log, time);
+    }).toList();
   }
 
   /// Get the installation date, or set it if not exists
@@ -174,6 +200,12 @@ class HabitWithTimes {
   final Future<List<HabitTime>> timesFuture;
 
   HabitWithTimes(this.habit, this.timesFuture);
+}
+
+class HabitLogWithTime {
+  final HabitLog log;
+  final HabitTime time;
+  HabitLogWithTime(this.log, this.time);
 }
 
 LazyDatabase _openConnection() {

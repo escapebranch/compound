@@ -86,8 +86,111 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
   Future<void> _toggleHabit(int habitId, int? habitTimeId, bool currentStatus) async {
     HapticFeedback.selectionClick();
-    await database.toggleHabitLog(habitId, habitTimeId, widget.date, !currentStatus);
+    
+    if (!currentStatus) {
+      // Completing the habit - show emotion dialog
+      final emotion = await _showEmotionDialog();
+      if (emotion != null) {
+        await database.toggleHabitLog(habitId, habitTimeId, widget.date, true, emotion: emotion);
+      }
+    } else {
+      // Un-completing
+      await database.toggleHabitLog(habitId, habitTimeId, widget.date, false);
+    }
+    
     await _fetchData();
+  }
+
+  Future<int?> _showEmotionDialog() async {
+    return showDialog<int>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: AppRadius.roundedXl,
+              border: Border.all(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'HOW WAS IT?',
+                    style: AppTypography.labelSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildEmotionOption(context, 1, Colors.orange, 'MEH'),
+                      _buildEmotionOption(context, 2, Colors.yellow, 'FINE'),
+                      _buildEmotionOption(context, 3, Colors.green, 'CRUSHED'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmotionOption(BuildContext context, int value, Color color, String label) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: () => Navigator.pop(context, value),
+          borderRadius: AppRadius.roundedFull,
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2),
+            ),
+            child: Center(
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: AppTypography.labelSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
   }
 
   @override

@@ -1091,6 +1091,17 @@ class $HabitLogsTable extends HabitLogs
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _emotionMeta = const VerificationMeta(
+    'emotion',
+  );
+  @override
+  late final GeneratedColumn<int> emotion = GeneratedColumn<int>(
+    'emotion',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1098,6 +1109,7 @@ class $HabitLogsTable extends HabitLogs
     habitTimeId,
     date,
     completed,
+    emotion,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1145,6 +1157,12 @@ class $HabitLogsTable extends HabitLogs
         completed.isAcceptableOrUnknown(data['completed']!, _completedMeta),
       );
     }
+    if (data.containsKey('emotion')) {
+      context.handle(
+        _emotionMeta,
+        emotion.isAcceptableOrUnknown(data['emotion']!, _emotionMeta),
+      );
+    }
     return context;
   }
 
@@ -1174,6 +1192,10 @@ class $HabitLogsTable extends HabitLogs
         DriftSqlType.bool,
         data['${effectivePrefix}completed'],
       )!,
+      emotion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}emotion'],
+      ),
     );
   }
 
@@ -1189,12 +1211,14 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
   final int? habitTimeId;
   final DateTime date;
   final bool completed;
+  final int? emotion;
   const HabitLog({
     required this.id,
     required this.habitId,
     this.habitTimeId,
     required this.date,
     required this.completed,
+    this.emotion,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1206,6 +1230,9 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
     }
     map['date'] = Variable<DateTime>(date);
     map['completed'] = Variable<bool>(completed);
+    if (!nullToAbsent || emotion != null) {
+      map['emotion'] = Variable<int>(emotion);
+    }
     return map;
   }
 
@@ -1218,6 +1245,9 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
           : Value(habitTimeId),
       date: Value(date),
       completed: Value(completed),
+      emotion: emotion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(emotion),
     );
   }
 
@@ -1232,6 +1262,7 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
       habitTimeId: serializer.fromJson<int?>(json['habitTimeId']),
       date: serializer.fromJson<DateTime>(json['date']),
       completed: serializer.fromJson<bool>(json['completed']),
+      emotion: serializer.fromJson<int?>(json['emotion']),
     );
   }
   @override
@@ -1243,6 +1274,7 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
       'habitTimeId': serializer.toJson<int?>(habitTimeId),
       'date': serializer.toJson<DateTime>(date),
       'completed': serializer.toJson<bool>(completed),
+      'emotion': serializer.toJson<int?>(emotion),
     };
   }
 
@@ -1252,12 +1284,14 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
     Value<int?> habitTimeId = const Value.absent(),
     DateTime? date,
     bool? completed,
+    Value<int?> emotion = const Value.absent(),
   }) => HabitLog(
     id: id ?? this.id,
     habitId: habitId ?? this.habitId,
     habitTimeId: habitTimeId.present ? habitTimeId.value : this.habitTimeId,
     date: date ?? this.date,
     completed: completed ?? this.completed,
+    emotion: emotion.present ? emotion.value : this.emotion,
   );
   HabitLog copyWithCompanion(HabitLogsCompanion data) {
     return HabitLog(
@@ -1268,6 +1302,7 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
           : this.habitTimeId,
       date: data.date.present ? data.date.value : this.date,
       completed: data.completed.present ? data.completed.value : this.completed,
+      emotion: data.emotion.present ? data.emotion.value : this.emotion,
     );
   }
 
@@ -1278,13 +1313,15 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
           ..write('habitId: $habitId, ')
           ..write('habitTimeId: $habitTimeId, ')
           ..write('date: $date, ')
-          ..write('completed: $completed')
+          ..write('completed: $completed, ')
+          ..write('emotion: $emotion')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, habitId, habitTimeId, date, completed);
+  int get hashCode =>
+      Object.hash(id, habitId, habitTimeId, date, completed, emotion);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1293,7 +1330,8 @@ class HabitLog extends DataClass implements Insertable<HabitLog> {
           other.habitId == this.habitId &&
           other.habitTimeId == this.habitTimeId &&
           other.date == this.date &&
-          other.completed == this.completed);
+          other.completed == this.completed &&
+          other.emotion == this.emotion);
 }
 
 class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
@@ -1302,12 +1340,14 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
   final Value<int?> habitTimeId;
   final Value<DateTime> date;
   final Value<bool> completed;
+  final Value<int?> emotion;
   const HabitLogsCompanion({
     this.id = const Value.absent(),
     this.habitId = const Value.absent(),
     this.habitTimeId = const Value.absent(),
     this.date = const Value.absent(),
     this.completed = const Value.absent(),
+    this.emotion = const Value.absent(),
   });
   HabitLogsCompanion.insert({
     this.id = const Value.absent(),
@@ -1315,6 +1355,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
     this.habitTimeId = const Value.absent(),
     required DateTime date,
     this.completed = const Value.absent(),
+    this.emotion = const Value.absent(),
   }) : habitId = Value(habitId),
        date = Value(date);
   static Insertable<HabitLog> custom({
@@ -1323,6 +1364,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
     Expression<int>? habitTimeId,
     Expression<DateTime>? date,
     Expression<bool>? completed,
+    Expression<int>? emotion,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1330,6 +1372,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
       if (habitTimeId != null) 'habit_time_id': habitTimeId,
       if (date != null) 'date': date,
       if (completed != null) 'completed': completed,
+      if (emotion != null) 'emotion': emotion,
     });
   }
 
@@ -1339,6 +1382,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
     Value<int?>? habitTimeId,
     Value<DateTime>? date,
     Value<bool>? completed,
+    Value<int?>? emotion,
   }) {
     return HabitLogsCompanion(
       id: id ?? this.id,
@@ -1346,6 +1390,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
       habitTimeId: habitTimeId ?? this.habitTimeId,
       date: date ?? this.date,
       completed: completed ?? this.completed,
+      emotion: emotion ?? this.emotion,
     );
   }
 
@@ -1367,6 +1412,9 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
     if (completed.present) {
       map['completed'] = Variable<bool>(completed.value);
     }
+    if (emotion.present) {
+      map['emotion'] = Variable<int>(emotion.value);
+    }
     return map;
   }
 
@@ -1377,7 +1425,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLog> {
           ..write('habitId: $habitId, ')
           ..write('habitTimeId: $habitTimeId, ')
           ..write('date: $date, ')
-          ..write('completed: $completed')
+          ..write('completed: $completed, ')
+          ..write('emotion: $emotion')
           ..write(')'))
         .toString();
   }
@@ -2372,6 +2421,7 @@ typedef $$HabitLogsTableCreateCompanionBuilder =
       Value<int?> habitTimeId,
       required DateTime date,
       Value<bool> completed,
+      Value<int?> emotion,
     });
 typedef $$HabitLogsTableUpdateCompanionBuilder =
     HabitLogsCompanion Function({
@@ -2380,6 +2430,7 @@ typedef $$HabitLogsTableUpdateCompanionBuilder =
       Value<int?> habitTimeId,
       Value<DateTime> date,
       Value<bool> completed,
+      Value<int?> emotion,
     });
 
 final class $$HabitLogsTableReferences
@@ -2445,6 +2496,11 @@ class $$HabitLogsTableFilterComposer
 
   ColumnFilters<bool> get completed => $composableBuilder(
     column: $table.completed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get emotion => $composableBuilder(
+    column: $table.emotion,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2519,6 +2575,11 @@ class $$HabitLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get emotion => $composableBuilder(
+    column: $table.emotion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$HabitsTableOrderingComposer get habitId {
     final $$HabitsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2583,6 +2644,9 @@ class $$HabitLogsTableAnnotationComposer
 
   GeneratedColumn<bool> get completed =>
       $composableBuilder(column: $table.completed, builder: (column) => column);
+
+  GeneratedColumn<int> get emotion =>
+      $composableBuilder(column: $table.emotion, builder: (column) => column);
 
   $$HabitsTableAnnotationComposer get habitId {
     final $$HabitsTableAnnotationComposer composer = $composerBuilder(
@@ -2664,12 +2728,14 @@ class $$HabitLogsTableTableManager
                 Value<int?> habitTimeId = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<bool> completed = const Value.absent(),
+                Value<int?> emotion = const Value.absent(),
               }) => HabitLogsCompanion(
                 id: id,
                 habitId: habitId,
                 habitTimeId: habitTimeId,
                 date: date,
                 completed: completed,
+                emotion: emotion,
               ),
           createCompanionCallback:
               ({
@@ -2678,12 +2744,14 @@ class $$HabitLogsTableTableManager
                 Value<int?> habitTimeId = const Value.absent(),
                 required DateTime date,
                 Value<bool> completed = const Value.absent(),
+                Value<int?> emotion = const Value.absent(),
               }) => HabitLogsCompanion.insert(
                 id: id,
                 habitId: habitId,
                 habitTimeId: habitTimeId,
                 date: date,
                 completed: completed,
+                emotion: emotion,
               ),
           withReferenceMapper: (p0) => p0
               .map(
