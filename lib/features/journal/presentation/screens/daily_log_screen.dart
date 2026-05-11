@@ -275,32 +275,6 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             ],
           ),
           const Spacer(),
-          if (_isToday)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: colorScheme.onSurface.withValues(alpha: 0.05),
-                borderRadius: AppRadius.roundedFull,
-                border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.1)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'LIVE',
-                    style: AppTypography.labelSmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
@@ -314,8 +288,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
           decoration: BoxDecoration(
             border: Border(
               top: BorderSide(
-                color: colorScheme.outline.withValues(alpha: 0.05),
-                width: 0.5,
+                color: colorScheme.outline.withValues(alpha: 0.15),
+                width: 0.6,
               ),
             ),
           ),
@@ -329,8 +303,9 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   '${index.toString().padLeft(2, '0')}:00',
                   textAlign: TextAlign.right,
                   style: AppTypography.labelSmall.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.25),
+                    color: colorScheme.onSurface.withValues(alpha: 0.55),
                     fontFamily: 'monospace',
+                    fontVariations: [const FontVariation('wght', 600)],
                   ),
                 ),
               ),
