@@ -210,7 +210,11 @@ class _HomePageState extends State<HomePage> {
                                       milliseconds: 380,
                                     ),
                                   ),
-                                );
+                                ).then((_) {
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                });
                               },
                             ),
                           ),
