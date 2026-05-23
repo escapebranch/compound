@@ -6,6 +6,7 @@ import 'package:compound/core/theme/app_spacing.dart';
 import 'package:compound/core/theme/app_typography.dart';
 import 'package:compound/main.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:compound/core/services/widget_sync_service.dart';
 
 class HabitConfigurationScreen extends StatefulWidget {
   const HabitConfigurationScreen({super.key});
@@ -362,6 +363,7 @@ class _CreateHabitBottomSheetState extends State<_CreateHabitBottomSheet> {
     }).toList();
 
     await database.createHabit(habitCompanion, timesCompanions);
+    await WidgetSyncService.syncTimeline();
 
     if (mounted) {
       Navigator.of(context).pop(true);

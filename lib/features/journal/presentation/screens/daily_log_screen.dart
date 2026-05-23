@@ -5,6 +5,7 @@ import 'package:compound/core/theme/app_radius.dart';
 import 'package:compound/core/data/app_database.dart';
 import 'package:compound/main.dart';
 import 'dart:async';
+import 'package:compound/core/services/widget_sync_service.dart';
 import 'habit_details_screen.dart';
 
 class DailyLogScreen extends StatefulWidget {
@@ -98,6 +99,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       await database.toggleHabitLog(habitId, habitTimeId, widget.date, false);
     }
     
+    await WidgetSyncService.syncTimeline();
     await _fetchData();
   }
 
@@ -141,9 +143,9 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildEmotionOption(context, 1, Colors.orange, 'MEH'),
-                      _buildEmotionOption(context, 2, Colors.yellow, 'FINE'),
-                      _buildEmotionOption(context, 3, Colors.green, 'CRUSHED'),
+                      _buildEmotionOption(context, 1, const Color(0xFFFF6B00), 'MEH'),
+                      _buildEmotionOption(context, 2, const Color(0xFFFFD600), 'FINE'),
+                      _buildEmotionOption(context, 3, const Color(0xFF00E676), 'CRUSHED'),
                     ],
                   ),
                 ],
@@ -325,7 +327,20 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         final duration = end - start;
         final top = start * _hourHeight;
         final height = duration * _hourHeight;
-        final isCompleted = _isHabitCompleted(rh.habit.id, rh.time.id);
+
+        // Find the log for this specific habit instance
+        final log = _logs.where((l) => l.habitId == rh.habit.id && l.habitTimeId == rh.time.id && l.completed).firstOrNull;
+        final isCompleted = log != null;
+        final emotion = log?.emotion;
+
+        Color? emotionColor;
+        if (isCompleted) {
+          switch (emotion) {
+            case 1: emotionColor = const Color(0xFFFF6B00); break;
+            case 2: emotionColor = const Color(0xFFFFD600); break;
+            case 3: emotionColor = const Color(0xFF00E676); break;
+          }
+        }
 
         return Positioned(
           top: top,
@@ -352,12 +367,12 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
               duration: const Duration(milliseconds: 300),
               decoration: BoxDecoration(
                 color: isCompleted
-                    ? colorScheme.onSurface.withValues(alpha: 0.15)
+                    ? (emotionColor?.withValues(alpha: 0.2) ?? colorScheme.onSurface.withValues(alpha: 0.15))
                     : colorScheme.onSurface.withValues(alpha: 0.05),
                 borderRadius: AppRadius.roundedLg,
                 border: Border.all(
                   color: isCompleted
-                      ? colorScheme.onSurface.withValues(alpha: 0.3)
+                      ? (emotionColor?.withValues(alpha: 0.4) ?? colorScheme.onSurface.withValues(alpha: 0.3))
                       : colorScheme.outline.withValues(alpha: 0.1),
                   width: 1,
                 ),
@@ -375,7 +390,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                     child: Icon(
                       isCompleted ? Icons.check_rounded : IconData(rh.habit.iconCodePoint, fontFamily: 'MaterialIcons'),
                       size: 18,
-                      color: isCompleted ? Colors.green : colorScheme.onSurface,
+                      color: isCompleted ? (emotionColor ?? Colors.green) : colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -389,12 +404,13 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                           style: AppTypography.titleSmall.copyWith(
                             fontWeight: FontWeight.bold,
                             decoration: isCompleted ? TextDecoration.lineThrough : null,
+                            color: isCompleted ? (emotionColor?.withValues(alpha: 0.9) ?? colorScheme.onSurface) : colorScheme.onSurface,
                           ),
                         ),
                         Text(
                           '${rh.time.startHour.toString().padLeft(2, '0')}:${rh.time.startMinute.toString().padLeft(2, '0')} - ${rh.time.endHour.toString().padLeft(2, '0')}:${rh.time.endMinute.toString().padLeft(2, '0')}',
                           style: AppTypography.labelSmall.copyWith(
-                            color: colorScheme.onSurface.withValues(alpha: 0.4),
+                            color: isCompleted ? (emotionColor?.withValues(alpha: 0.6) ?? colorScheme.onSurface.withValues(alpha: 0.4)) : colorScheme.onSurface.withValues(alpha: 0.4),
                           ),
                         ),
                       ],
