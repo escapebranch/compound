@@ -36,7 +36,7 @@ void main() async {
   // Enable edge-to-edge mode on Android
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-  HomeWidget.registerBackgroundCallback(backgroundCallback);
+  HomeWidget.registerInteractivityCallback(backgroundCallback);
   await WidgetSyncService.syncTimeline();
 
   runApp(const CompoundApp());

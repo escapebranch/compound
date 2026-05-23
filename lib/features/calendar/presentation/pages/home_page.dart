@@ -315,18 +315,19 @@ class _HomePageState extends State<HomePage> {
                 title: 'Generate Mock Data',
                 subtitle: 'Fill May 2026 with sample habits',
                 onTap: () async {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   await MockDataGenerator.generateMockData(database);
                   installYear = await database.getInstallYear();
                   installMonth = await database.getInstallMonth();
-                  if (mounted) {
-                    setState(() {
-                      _currentDate = DateTime(2026, 5, 13);
-                    });
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Mock data generated!')),
-                    );
-                  }
+                  if (!mounted) return;
+                  setState(() {
+                    _currentDate = DateTime(2026, 5, 13);
+                  });
+                  navigator.pop();
+                  scaffoldMessenger.showSnackBar(
+                    const SnackBar(content: Text('Mock data generated!')),
+                  );
                 },
               ),
               const SizedBox(height: 10),
@@ -337,6 +338,8 @@ class _HomePageState extends State<HomePage> {
                 title: 'Flush Database',
                 subtitle: 'Delete all habits and logs',
                 onTap: () async {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -361,15 +364,14 @@ class _HomePageState extends State<HomePage> {
                     await database.flushDatabase();
                     installYear = await database.getInstallYear();
                     installMonth = await database.getInstallMonth();
-                    if (mounted) {
-                      setState(() {
-                        _currentDate = DateTime.now();
-                      });
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Database flushed!')),
-                      );
-                    }
+                    if (!mounted) return;
+                    setState(() {
+                      _currentDate = DateTime.now();
+                    });
+                    navigator.pop();
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(content: Text('Database flushed!')),
+                    );
                   }
                 },
               ),

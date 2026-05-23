@@ -1,7 +1,5 @@
-import 'package:home_widget/home_widget.dart';
 import 'package:compound/core/data/app_database.dart';
 import 'package:compound/core/services/widget_sync_service.dart';
-import 'package:flutter/material.dart';
 
 @pragma('vm:entry-point')
 Future<void> backgroundCallback(Uri? uri) async {

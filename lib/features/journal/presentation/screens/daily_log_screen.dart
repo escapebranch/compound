@@ -81,9 +81,6 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         widget.date.day == now.day;
   }
 
-  bool _isHabitCompleted(int habitId, int? habitTimeId) {
-    return _logs.any((l) => l.habitId == habitId && l.habitTimeId == habitTimeId && l.completed);
-  }
 
   Future<void> _toggleHabit(int habitId, int? habitTimeId, bool currentStatus) async {
     HapticFeedback.selectionClick();

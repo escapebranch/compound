@@ -47,7 +47,6 @@ class WidgetSyncService {
     });
 
     final jsonString = jsonEncode(timelineData);
-    print("WIDGET_SYNC: jsonString = $jsonString");
 
     await HomeWidget.saveWidgetData<String>('timeline_data', jsonString);
     await HomeWidget.updateWidget(
