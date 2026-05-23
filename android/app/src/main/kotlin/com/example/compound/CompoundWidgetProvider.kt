@@ -26,7 +26,7 @@ class CompoundWidgetProvider : AppWidgetProvider() {
             data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
         }
         views.setRemoteAdapter(R.id.habit_list, intent)
-        views.setEmptyView(R.id.habit_list, R.id.widget_title) // Simple fallback
+        views.setEmptyView(R.id.habit_list, R.id.empty_view)
 
         // Setup item click intent template MUST be mutable for fillInIntent to work
         val templateIntent = Intent(context, es.antonborri.home_widget.HomeWidgetBackgroundReceiver::class.java)

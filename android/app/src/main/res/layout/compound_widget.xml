@@ -33,13 +33,28 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
+        android:layout_marginBottom="4dp"
         android:background="#222222" />
 
-    <ListView
-        android:id="@+id/habit_list"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:divider="@null"
-        android:dividerHeight="0dp" />
+        android:layout_height="match_parent">
+
+        <ListView
+            android:id="@+id/habit_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp" />
+
+        <TextView
+            android:id="@+id/empty_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="No habits for today."
+            android:textColor="#808080"
+            android:textSize="14sp" />
+    </FrameLayout>
 
 </LinearLayout>

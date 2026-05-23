@@ -59,6 +59,8 @@ class HabitListFactory(private val context: Context) : RemoteViewsService.Remote
             views.setTextViewText(R.id.habit_time, String.format("%02d:%02d", startHour, startMinute))
             views.setTextViewText(R.id.habit_duration, String.format("%02d:%02d - %02d:%02d", startHour, startMinute, endHour, endMinute))
 
+            val firstLetter = if (name.isNotEmpty()) name.substring(0, 1).uppercase() else "?"
+
             if (isCompleted) {
                 val colorStr = when (emotion) {
                     1 -> "#FF6B00"
@@ -69,7 +71,16 @@ class HabitListFactory(private val context: Context) : RemoteViewsService.Remote
                 val color = Color.parseColor(colorStr)
                 views.setTextColor(R.id.habit_name, color)
                 views.setViewVisibility(R.id.emotion_container, View.GONE)
-                views.setImageViewResource(R.id.habit_icon, android.R.drawable.checkbox_on_background)
+                
+                // Set text icon as checkmark
+                views.setTextViewText(R.id.habit_icon_text, "✓")
+                val bgResource = when (emotion) {
+                    1 -> R.drawable.circle_meh
+                    2 -> R.drawable.circle_fine
+                    3 -> R.drawable.circle_crushed
+                    else -> R.drawable.circle
+                }
+                views.setInt(R.id.habit_icon_text, "setBackgroundResource", bgResource)
                 
                 // Set background color with transparency
                 val hexColor = String.format("%06X", (0xFFFFFF and color))
@@ -77,7 +88,11 @@ class HabitListFactory(private val context: Context) : RemoteViewsService.Remote
             } else {
                 views.setTextColor(R.id.habit_name, Color.WHITE)
                 views.setViewVisibility(R.id.emotion_container, View.VISIBLE)
-                views.setImageViewResource(R.id.habit_icon, android.R.drawable.ic_menu_help)
+                
+                // Set text icon as first letter
+                views.setTextViewText(R.id.habit_icon_text, firstLetter)
+                views.setInt(R.id.habit_icon_text, "setBackgroundResource", R.drawable.circle)
+                
                 views.setInt(R.id.habit_card, "setBackgroundColor", Color.parseColor("#0A0A0A"))
                 
                 // Setup click intents for emotions
