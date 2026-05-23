@@ -80,8 +80,7 @@
                     android:layout_height="24dp"
                     android:background="@android:color/transparent"
                     android:scaleType="centerInside"
-                    android:src="@drawable/circle"
-                    android:tint="#FF6B00" />
+                    android:src="@drawable/circle_meh" />
                 <ImageButton
                     android:id="@+id/btn_fine"
                     android:layout_width="24dp"
@@ -89,8 +88,7 @@
                     android:layout_marginStart="4dp"
                     android:background="@android:color/transparent"
                     android:scaleType="centerInside"
-                    android:src="@drawable/circle"
-                    android:tint="#FFD600" />
+                    android:src="@drawable/circle_fine" />
                 <ImageButton
                     android:id="@+id/btn_crushed"
                     android:layout_width="24dp"
@@ -98,8 +96,7 @@
                     android:layout_marginStart="4dp"
                     android:background="@android:color/transparent"
                     android:scaleType="centerInside"
-                    android:src="@drawable/circle"
-                    android:tint="#00E676" />
+                    android:src="@drawable/circle_crushed" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

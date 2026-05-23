@@ -9,6 +9,7 @@ class WidgetSyncService {
   static const String _iosWidgetName = 'CompoundWidget';
 
   static Future<void> syncTimeline([AppDatabase? db]) async {
+    await HomeWidget.setAppGroupId(_groupId);
     final effectiveDb = db ?? database;
     final now = DateTime.now();
     final habitsWithTimes = await effectiveDb.getHabitsForDay(now.weekday);

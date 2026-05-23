@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.RemoteViews
-import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 
 class CompoundWidgetProvider : AppWidgetProvider() {
@@ -29,11 +28,14 @@ class CompoundWidgetProvider : AppWidgetProvider() {
         views.setRemoteAdapter(R.id.habit_list, intent)
         views.setEmptyView(R.id.habit_list, R.id.widget_title) // Simple fallback
 
-        // Setup item click intent
-        val clickIntent = HomeWidgetBackgroundIntent.getBroadcast(
-            context,
-            Uri.parse("compound://log_habit")
-        )
+        // Setup item click intent template MUST be mutable for fillInIntent to work
+        val templateIntent = Intent(context, es.antonborri.home_widget.HomeWidgetBackgroundReceiver::class.java)
+        val flags = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        val clickIntent = PendingIntent.getBroadcast(context, 0, templateIntent, flags)
         views.setPendingIntentTemplate(R.id.habit_list, clickIntent)
 
         // App launch intent
