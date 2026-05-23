@@ -4,13 +4,16 @@ import 'package:compound/core/theme/theme_notifier.dart';
 import 'package:compound/features/calendar/calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:home_widget/home_widget.dart';
+import 'package:compound/core/services/widget_background_handler.dart';
+import 'package:compound/core/services/widget_sync_service.dart';
 
 /// Global database instance
 late final AppDatabase database;
 
 /// Install year and month (cached for quick access)
-late final int installYear;
-late final int installMonth;
+late int installYear;
+late int installMonth;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +35,9 @@ void main() async {
 
   // Enable edge-to-edge mode on Android
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  HomeWidget.registerBackgroundCallback(backgroundCallback);
+  await WidgetSyncService.syncTimeline();
 
   runApp(const CompoundApp());
 }
