@@ -53,8 +53,14 @@ class CompoundWidgetProvider : AppWidgetProvider() {
         super.onReceive(context, intent)
         if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
-            val appWidgetIds = appWidgetManager.getAppWidgetIds(intent.component)
-            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.habit_list)
+            var appWidgetIds = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS)
+            if (appWidgetIds == null || appWidgetIds.isEmpty()) {
+                val component = android.content.ComponentName(context, CompoundWidgetProvider::class.java)
+                appWidgetIds = appWidgetManager.getAppWidgetIds(component)
+            }
+            if (appWidgetIds != null && appWidgetIds.isNotEmpty()) {
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.habit_list)
+            }
         }
     }
 }
