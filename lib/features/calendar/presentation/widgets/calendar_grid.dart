@@ -298,7 +298,7 @@ class _ProportionalBackgroundPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final opacity = isFaded ? 0.3 : 1.0;
+    final opacity = isFaded ? 0.5 : 1.0;
     
     for (var segment in segments) {
       final top = segment.startPercent * size.height;
@@ -306,15 +306,15 @@ class _ProportionalBackgroundPainter extends CustomPainter {
       
       Color color;
       switch (segment.emotion) {
-        case 1: color = Colors.orange; break;
-        case 2: color = Colors.yellow; break;
-        case 3: color = Colors.green; break;
+        case 1: color = const Color(0xFFFF6B00); break; // Deep Orange
+        case 2: color = const Color(0xFFFFD600); break; // Vibrant Yellow
+        case 3: color = const Color(0xFF00E676); break; // Spring Green
         default: color = Colors.transparent;
       }
 
       if (color != Colors.transparent) {
-        final paint = Paint()..color = color.withValues(alpha: 0.6 * opacity);
-        canvas.drawRect(Rect.fromLTRB(0, top, size.width, bottom), paint);
+        final paint = Paint()..color = color.withValues(alpha: 0.85 * opacity);
+        canvas.drawRect(Rect.fromLTRB(0, top, size.width * 0.15, bottom), paint);
       }
     }
   }

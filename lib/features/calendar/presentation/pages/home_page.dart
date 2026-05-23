@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:compound/main.dart' show installYear, installMonth;
+import 'package:compound/main.dart' show database, installYear, installMonth;
 import 'package:compound/core/theme/theme_notifier.dart';
+import 'package:compound/core/utils/mock_data_generator.dart';
 import 'package:compound/features/journal/presentation/screens/daily_log_screen.dart';
 import 'package:compound/features/journal/presentation/screens/habit_configuration_screen.dart';
 import '../widgets/widgets.dart';
@@ -304,6 +305,72 @@ class _HomePageState extends State<HomePage> {
                       builder: (_) => const HabitConfigurationScreen(),
                     ),
                   );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildActionCard(
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+                icon: Icons.auto_awesome,
+                title: 'Generate Mock Data',
+                subtitle: 'Fill May 2026 with sample habits',
+                onTap: () async {
+                  await MockDataGenerator.generateMockData(database);
+                  installYear = await database.getInstallYear();
+                  installMonth = await database.getInstallMonth();
+                  if (mounted) {
+                    setState(() {
+                      _currentDate = DateTime(2026, 5, 13);
+                    });
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Mock data generated!')),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildActionCard(
+                colorScheme: colorScheme,
+                textTheme: textTheme,
+                icon: Icons.delete_sweep_rounded,
+                title: 'Flush Database',
+                subtitle: 'Delete all habits and logs',
+                onTap: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Flush Database?'),
+                      content: const Text(
+                          'This will delete all your data permanently.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Flush',
+                              style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
+                    await database.flushDatabase();
+                    installYear = await database.getInstallYear();
+                    installMonth = await database.getInstallMonth();
+                    if (mounted) {
+                      setState(() {
+                        _currentDate = DateTime.now();
+                      });
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Database flushed!')),
+                      );
+                    }
+                  }
                 },
               ),
             ],
