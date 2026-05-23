@@ -193,6 +193,16 @@ class AppDatabase extends _$AppDatabase {
     final installDate = await getOrSetInstallDate();
     return installDate.month;
   }
+
+  /// Delete all data from the database
+  Future<void> flushDatabase() async {
+    await transaction(() async {
+      await delete(habitLogs).go();
+      await delete(habitTimes).go();
+      await delete(habits).go();
+      await delete(appSettings).go();
+    });
+  }
 }
 
 class HabitWithTimes {
